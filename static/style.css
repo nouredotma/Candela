@@ -14,7 +14,7 @@
 html, body {
     height: 100%;
     font-family: 'Open Sans', system-ui, -apple-system, sans-serif;
-    background: linear-gradient(to top, #447768, #c8e0d8);
+    background: linear-gradient(to top, #447768, #e1dcd7);
     background-attachment: fixed;
     color: #e0e0e0;
     font-size: 14px;
@@ -176,6 +176,8 @@ input, button, select, textarea {
     width: 460px;
     padding: 40px 24px 24px 24px; /* Increased top padding to push content down slightly for better visual balance */
     background: transparent;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Responsive */
@@ -292,6 +294,7 @@ input, button, select, textarea {
     width: 100%;
     margin-top: 8px; /* Extra space after tab bar */
     transition: height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    min-height: 220px; /* Ensures a stable height and enough space for forms */
 }
 
 .join-content-wrapper {
@@ -533,7 +536,7 @@ input, button, select, textarea {
     padding: 12px 12px;
     font-size: 14px;
     color: #ffffff;
-    border-radius: 4px;
+    border-radius: 50px;
     margin: 4px 12px;
     transition: background-color 0.15s, color 0.15s;
     font-weight: 500;
@@ -604,8 +607,8 @@ input, button, select, textarea {
     align-items: center;
     gap: 12px;
     width: 100%;
-    padding: 10px 10px;
-    border-radius: 4px;
+    padding: 10px 14px 10px 10px;
+    border-radius: 50px;
     cursor: pointer;
     transition: all 0.3s ease;
     position: relative;
@@ -828,10 +831,10 @@ input, button, select, textarea {
 .online-count {
     font-size: 12px;
     color: #679c8f;
-    padding: 3px 10px;
+    padding: 3px 12px;
     background-color: rgba(103, 156, 143, 0.1);
     border: 1px solid rgba(103, 156, 143, 0.2);
-    border-radius: 4px;
+    border-radius: 50px;
 }
 
 /* ── Messages Feed ─────────────────────────────────────────────────────── */
@@ -992,8 +995,8 @@ input, button, select, textarea {
     gap: 12px;
     background-color: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 4px; /* Extra small rounded as requested */
-    padding: 6px 12px; /* Increased vertical, reduced horizontal */
+    border-radius: 50px; /* Full rounded as requested */
+    padding: 6px 18px; /* Slightly more horizontal padding for rounded ends */
     transition: all 0.3s ease;
 }
 
@@ -1170,7 +1173,7 @@ input, button, select, textarea {
     color: #447768;
     border: none;
     padding: 10px 20px;
-    border-radius: 4px;
+    border-radius: 50px;
     font-weight: 600;
     font-size: 13px;
     margin: 8px 16px 0;
@@ -1179,10 +1182,12 @@ input, button, select, textarea {
     text-transform: uppercase;
     letter-spacing: 0.5px;
     width: calc(100% - 32px);
+    box-shadow: none;
 }
 
 .btn-create-room:hover {
     background: rgba(255, 255, 255, 0.9);
+    box-shadow: none;
 }
 
 /* ── Modal Overlay ─────────────────────────────────────────────────────── */
@@ -1277,7 +1282,7 @@ input, button, select, textarea {
 .modal-body .btn-chat-primary {
     background-color: #447768 !important;
     color: #ffffff !important;
-    border-radius: 4px;
+    border-radius: 50px;
 }
 
 .modal-body .btn-chat-primary:hover {
@@ -1385,7 +1390,7 @@ input, button, select, textarea {
     padding: 6px 10px;
     cursor: pointer;
     transition: all 0.2s ease;
-    border-radius: 4px;
+    border-radius: 50px;
     border: 1px solid transparent;
     display: flex;
     align-items: center;
@@ -1427,7 +1432,7 @@ input, button, select, textarea {
     background-color: rgba(68, 119, 104, 0.1) !important;
     color: #447768 !important;
     border: 1px solid rgba(68, 119, 104, 0.2) !important;
-    border-radius: 8px !important;
+    border-radius: 50px !important;
     font-weight: 600;
     height: 42px;
     display: flex;
@@ -1440,7 +1445,7 @@ input, button, select, textarea {
     background-color: #dc3545 !important;
     color: #ffffff !important;
     border: none;
-    border-radius: 8px !important;
+    border-radius: 50px !important;
     font-weight: 600;
     height: 42px;
     display: flex;

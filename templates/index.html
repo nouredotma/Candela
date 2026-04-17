@@ -169,6 +169,14 @@
         window.addEventListener("load", updateViewportHeight);
         window.addEventListener("resize", updateViewportHeight);
 
+        // Use ResizeObserver to automatically update height when content changes (e.g. errors appear)
+        if (window.ResizeObserver) {
+            const ro = new ResizeObserver(() => {
+                updateViewportHeight();
+            });
+            tabContents.forEach(tab => ro.observe(tab));
+        }
+
         // ── Login Form Handler ──────────────────────────────────────────────
         document.getElementById("login-form").addEventListener("submit", function(e) {
             e.preventDefault();
@@ -199,7 +207,6 @@
             const username = document.getElementById("reg-username").value.trim();
             const password = document.getElementById("reg-password").value.trim();
             const errorDiv = document.getElementById("register-error");
-            const successDiv = document.getElementById("register-success");
 
             fetch("/register", {
                 method: "POST",
@@ -211,7 +218,6 @@
                 if (data.error) {
                     errorDiv.textContent = data.error;
                     errorDiv.style.display = "block";
-                    successDiv.style.display = "none";
                 } else {
                     // Redirect immediately to general room after registration
                     window.location.href = "/chat/general";
