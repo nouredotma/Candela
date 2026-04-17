@@ -1,74 +1,8 @@
 [
   {
     "name": "general",
-    "created_at": "2026-04-17 16:04:03"
-  },
-  {
-    "name": "supisi",
-    "created_at": "2026-04-17 16:11:25"
-  },
-  {
-    "name": "coffe",
-    "created_at": "2026-04-17 18:20:18"
-  },
-  {
-    "name": "war",
-    "created_at": "2026-04-17 18:46:36",
-    "is_secure": true,
-    "password": "1424"
-  },
-  {
-    "name": "koooora",
-    "created_at": "2026-04-17 19:12:41",
-    "is_secure": false,
-    "password": null
-  },
-  {
-    "name": "ccccccccccc",
-    "created_at": "2026-04-17 19:15:32",
-    "is_secure": false,
-    "password": null
-  },
-  {
-    "name": "fdfddf",
-    "created_at": "2026-04-17 20:14:52",
-    "is_secure": false,
-    "password": null
-  },
-  {
-    "name": "dfddfg",
-    "created_at": "2026-04-17 20:14:59",
-    "is_secure": true,
-    "password": "1424"
-  },
-  {
-    "name": "vdfvfdv",
-    "created_at": "2026-04-17 20:15:03",
-    "is_secure": false,
-    "password": null
-  },
-  {
-    "name": "dfvfvbgb",
-    "created_at": "2026-04-17 20:15:07",
-    "is_secure": false,
-    "password": null
-  },
-  {
-    "name": "fdvbhh",
-    "created_at": "2026-04-17 20:15:13",
-    "is_secure": false,
-    "password": null
-  },
-  {
-    "name": "ferfre",
-    "created_at": "2026-04-17 20:16:04",
-    "is_secure": false,
-    "password": null
-  },
-  {
-    "name": "cdcdffdvf",
-    "created_at": "2026-04-17 20:16:11",
-    "is_secure": false,
-    "password": null
+    "creator": "System",
+    "created_at": "2026-04-17 20:40:31",
+    "is_secure": false
   }
 ]

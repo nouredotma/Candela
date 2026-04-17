@@ -43,11 +43,22 @@ def init_data():
     os.makedirs(UPLOADS_DIR, exist_ok=True)
 
     # Initialize rooms.json with default "general" room
-    if not os.path.exists(ROOMS_FILE):
-        default_rooms = [
-            {"name": "general", "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
-        ]
-        save_json(ROOMS_FILE, default_rooms)
+    rooms = []
+    if os.path.exists(ROOMS_FILE):
+        try:
+            rooms = load_json(ROOMS_FILE)
+        except:
+            rooms = []
+    
+    # Ensure "general" exists
+    if not any(r["name"] == "general" for r in rooms):
+        rooms.insert(0, {
+            "name": "general", 
+            "creator": "System",
+            "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "is_secure": False
+        })
+        save_json(ROOMS_FILE, rooms)
 
     # Initialize users.json
     if not os.path.exists(USERS_FILE):
@@ -110,10 +121,13 @@ def is_username_registered(username):
 def get_sanitized_rooms():
     """Returns all rooms, stripping out passwords to safely send to frontend."""
     rooms = load_json(ROOMS_FILE)
+    sanitized = []
     for r in rooms:
-        if "password" in r:
-            del r["password"]
-    return rooms
+        r_copy = r.copy()
+        if "password" in r_copy:
+            del r_copy["password"]
+        sanitized.append(r_copy)
+    return sanitized
 
 
 def is_room_secure(room_name):
@@ -137,7 +151,9 @@ def check_room_access(room_name):
 
 @app.route("/")
 def index():
-    """Index/join page."""
+    """Index/join page. If already logged in, redirect to general."""
+    if "username" in session:
+        return redirect("/chat/general")
     rooms = get_sanitized_rooms()
     return render_template("index.html", rooms=rooms)
 
@@ -181,7 +197,7 @@ def chat(room):
     safe_rooms = get_sanitized_rooms()
     room_names = [r["name"] for r in safe_rooms]
     if room not in room_names:
-        return redirect("/")
+        return redirect("/chat/general")
 
     # Update session room
     session["room"] = room
@@ -189,7 +205,18 @@ def chat(room):
     is_secure = is_room_secure(room)
     is_unlocked = check_room_access(room)
 
-    return render_template("chat.html", room=room, username=session["username"], rooms=safe_rooms, is_secure=is_secure, is_unlocked=is_unlocked)
+    # Find the creator of the room
+    all_rooms = load_json(ROOMS_FILE)
+    room_info = next((r for r in all_rooms if r["name"] == room), None)
+    room_creator = room_info.get("creator") if room_info else None
+
+    return render_template("chat.html", 
+                           room=room, 
+                           username=session["username"], 
+                           rooms=safe_rooms, 
+                           is_secure=is_secure, 
+                           is_unlocked=is_unlocked,
+                           room_creator=room_creator)
 
 
 @app.route("/send", methods=["POST"])
@@ -286,6 +313,7 @@ def create_room():
     # Add new room
     rooms.append({
         "name": room_name,
+        "creator": session.get("username", "Guest"),
         "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "is_secure": bool(password),
         "password": password if password else None
@@ -452,6 +480,46 @@ def unlock_room():
         return jsonify({"status": "ok"})
     else:
         return jsonify({"error": "Incorrect password"}), 401
+
+
+@app.route("/delete-room", methods=["POST"])
+def delete_room():
+    """Delete a room. Only the creator can do this."""
+    if "username" not in session:
+        return jsonify({"error": "Not logged in"}), 401
+
+    data = request.json
+    room_name = data.get("room", "").strip()
+
+    if room_name == "general":
+        return jsonify({"error": "Cannot delete the general room"}), 403
+
+    rooms = load_json(ROOMS_FILE)
+    room_idx = next((i for i, r in enumerate(rooms) if r["name"] == room_name), -1)
+
+    if room_idx == -1:
+        return jsonify({"error": "Room not found"}), 404
+
+    # Authorization check
+    if rooms[room_idx].get("creator") != session["username"]:
+        return jsonify({"error": "Only the creator can delete this room"}), 403
+
+    # Delete room entry
+    del rooms[room_idx]
+    save_json(ROOMS_FILE, rooms)
+
+    # Delete messages file
+    messages_file = os.path.join(MESSAGES_DIR, f"{room_name}.json")
+    if os.path.exists(messages_file):
+        os.remove(messages_file)
+
+    # Clean up online users for this room
+    online = load_json(ONLINE_FILE)
+    if room_name in online:
+        del online[room_name]
+        save_json(ONLINE_FILE, online)
+
+    return jsonify({"status": "ok"})
 
 
 # ── Initialize and Run ───────────────────────────────────────────────────────

@@ -442,6 +442,61 @@ function unlockRoom() {
     });
 }
 
+/**
+ * Show a floating toast notification.
+ * @param {string} message - Message to display
+ * @param {string} type - 'success' or 'error'
+ */
+function showToast(message, type = "success") {
+    const container = document.getElementById("toast-container");
+    if (!container) return;
+
+    const toast = document.createElement("div");
+    toast.className = `toast-message ${type}`;
+    
+    // Choose icon
+    const icon = type === "success" ? "bi-check-circle-fill" : "bi-exclamation-circle-fill";
+    
+    toast.innerHTML = `<i class="bi ${icon}"></i><span>${message}</span>`;
+    container.appendChild(toast);
+
+    // Remove from DOM after animation completes
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
+
+/**
+ * Perform actual room deletion.
+ */
+function confirmDeleteRoom() {
+    const errorDiv = document.getElementById("delete-room-error");
+    
+    fetch("/delete-room", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ room: CURRENT_ROOM })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.error) {
+            errorDiv.textContent = data.error;
+            errorDiv.style.display = "block";
+        } else {
+            // Success — save toast for after redirect and go to general
+            localStorage.setItem("pending_toast", JSON.stringify({
+                message: `#${CURRENT_ROOM} deleted successfully.`,
+                type: "success"
+            }));
+            window.location.href = "/chat/general";
+        }
+    })
+    .catch(err => {
+        errorDiv.textContent = "Error deleting room.";
+        errorDiv.style.display = "block";
+    });
+}
+
 
 // ══════════════════════════════════════════════════════════════════════════
 // Utility Functions
@@ -576,6 +631,42 @@ if (unlockBtn && roomPwdInput) {
     });
 }
 
+// Delete Room Event Listeners
+const deleteModal = document.getElementById("delete-modal");
+const openDeleteBtn = document.getElementById("open-delete-modal");
+const closeDeleteBtn = document.getElementById("close-delete-modal");
+const cancelDeleteBtn = document.getElementById("cancel-delete-btn");
+const confirmDeleteBtn = document.getElementById("confirm-delete-btn");
+
+if (openDeleteBtn) {
+    openDeleteBtn.addEventListener("click", () => {
+        // Check online users for warning
+        fetch(`/online/${CURRENT_ROOM}`)
+            .then(res => res.json())
+            .then(users => {
+                // Filter out current user
+                const others = users.filter(u => u !== CURRENT_USER);
+                const warningDiv = document.getElementById("online-warning");
+                const countSpan = document.getElementById("online-warning-count");
+                
+                if (others.length > 0) {
+                    countSpan.textContent = others.length;
+                    warningDiv.style.display = "block";
+                } else {
+                    warningDiv.style.display = "none";
+                }
+                
+                deleteModal.style.display = "flex";
+            })
+            .catch(() => {
+                deleteModal.style.display = "flex";
+            });
+    });
+}
+if (closeDeleteBtn) closeDeleteBtn.addEventListener("click", () => deleteModal.style.display = "none");
+if (cancelDeleteBtn) cancelDeleteBtn.addEventListener("click", () => deleteModal.style.display = "none");
+if (confirmDeleteBtn) confirmDeleteBtn.addEventListener("click", confirmDeleteRoom);
+
 
 // ══════════════════════════════════════════════════════════════════════════
 // Initial Load
@@ -584,6 +675,17 @@ if (unlockBtn && roomPwdInput) {
 // Load messages and online users immediately on page load
 pollMessages();
 pollOnlineUsers();
+
+// Check for pending toasts from previous page actions (like deletion)
+const pendingToast = localStorage.getItem("pending_toast");
+if (pendingToast) {
+    const toastData = JSON.parse(pendingToast);
+    // Use a small timeout to ensure DOM is fully ready and visible
+    setTimeout(() => {
+        showToast(toastData.message, toastData.type);
+        localStorage.removeItem("pending_toast");
+    }, 300);
+}
 
 
 // ══════════════════════════════════════════════════════════════════════════

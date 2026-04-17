@@ -1123,3 +1123,125 @@ input, button, select, textarea {
     border-color: #ffffff;
 }
 
+/* ── Delete Room Button ────────────────────────────────────────────────── */
+.btn-delete-room {
+    background: transparent;
+    color: #dc3545; /* Red by default as requested */
+    font-size: 18px;
+    padding: 6px 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 4px;
+    border: 1px solid transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-delete-room:hover {
+    background: rgba(220, 53, 69, 0.1);
+    border-color: rgba(220, 53, 69, 0.2);
+}
+
+.chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* ── Delete Room Modal ─────────────────────────────────────────────────── */
+.modal-danger {
+    border-top: 4px solid #dc3545 !important;
+}
+
+.modal-danger .modal-header h3 {
+    color: #dc3545;
+}
+
+.delete-warning-icon {
+    font-size: 40px; /* Slightly smaller for better spacing */
+    color: #ffc107;
+    margin-bottom: 8px !important;
+}
+
+.modal-danger .modal-body {
+    padding-top: 0;
+    gap: 8px; /* Tighten vertical space */
+}
+
+.btn-chat-secondary {
+    background-color: rgba(68, 119, 104, 0.1) !important;
+    color: #447768 !important;
+    border: 1px solid rgba(68, 119, 104, 0.2) !important;
+    border-radius: 8px !important;
+    font-weight: 600;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 0;
+}
+
+.btn-danger-confirm {
+    background-color: #dc3545 !important;
+    color: #ffffff !important;
+    border: none;
+    border-radius: 8px !important;
+    font-weight: 600;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-chat-secondary:hover {
+    background-color: rgba(68, 119, 104, 0.2) !important;
+}
+
+.btn-danger-confirm:hover {
+    background-color: #c82333 !important;
+}
+
+/* ── Toast Notifications ───────────────────────────────────────────────── */
+.toast-container {
+    position: fixed;
+    top: 32px; /* Moved to top */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.toast-message {
+    background: #ffffff;
+    color: #447768;
+    padding: 12px 24px;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 13px;
+    box-shadow: none; /* Removed shadow */
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    pointer-events: auto;
+    animation: toastIn 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28), toastOut 0.4s 2.6s forwards;
+    border: 1px solid rgba(103, 156, 143, 0.2);
+}
+
+.toast-message.success i { color: #4ade80; }
+.toast-message.error i { color: #dc3545; }
+.toast-message.error { color: #dc3545; }
+
+@keyframes toastIn {
+    from { transform: translateY(-100px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes toastOut {
+    from { transform: translateY(0); opacity: 1; }
+    to { transform: translateY(-30px); opacity: 0; }
+}
+
