@@ -385,6 +385,14 @@ function createRoom() {
         return;
     }
 
+    // Validate room name (alphanumeric, hyphens, underscores only)
+    const roomNameRegex = /^[a-z0-9-_]+$/;
+    if (!roomNameRegex.test(roomName)) {
+        errorDiv.textContent = "Room name can only contain letters, numbers, hyphens, and underscores.";
+        errorDiv.style.display = "block";
+        return;
+    }
+
     fetch("/create-room", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

@@ -1175,7 +1175,7 @@ input, button, select, textarea {
     gap: 8px; /* Tighten vertical space */
 }
 
-.btn-chat-secondary {
+.modal-content .btn-chat-secondary {
     background-color: rgba(68, 119, 104, 0.1) !important;
     color: #447768 !important;
     border: 1px solid rgba(68, 119, 104, 0.2) !important;

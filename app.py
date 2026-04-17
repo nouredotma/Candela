@@ -11,6 +11,7 @@ import random
 from datetime import datetime, timedelta
 from flask import Flask, render_template, request, redirect, session, jsonify, url_for
 from flask_session import Session
+import re
 import bcrypt
 
 # ── Flask App Setup ──────────────────────────────────────────────────────────
@@ -302,6 +303,10 @@ def create_room():
 
     if not room_name:
         return jsonify({"error": "Room name is required"}), 400
+
+    # Validate room name (alphanumeric, hyphens, underscores only)
+    if not re.match(r"^[a-z0-9-_]+$", room_name):
+        return jsonify({"error": "Room name can only contain letters, numbers, hyphens, and underscores."}), 400
 
     # Load existing rooms
     rooms = load_json(ROOMS_FILE)
