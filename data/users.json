@@ -11,8 +11,8 @@
     "username": "adil",
     "password": "$2b$12$siLRjNG58u4ZnUwCm3Mn2.EUEPQo4BeR9ypk5K8CCcICOK9UYT3bm",
     "avatar": {
-      "type": "upload",
-      "value": "avatar_ey2u9g.jpg"
+      "type": "dicebear",
+      "value": "adventurer:Aneka"
     }
   },
   {
@@ -29,6 +29,14 @@
     "avatar": {
       "type": "dicebear",
       "value": "lorelei:Bella"
+    }
+  },
+  {
+    "username": "russia",
+    "password": "$2b$12$S5gNjTACHGz1f8aCiNVCROpsjGsBO/ApgTXP/jfWEQHkziWDryTAG",
+    "avatar": {
+      "type": "dicebear",
+      "value": "avataaars:Max"
     }
   }
 ]

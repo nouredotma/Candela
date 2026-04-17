@@ -1006,10 +1006,14 @@ function saveDicebearAvatar(value) {
             showToast("Avatar updated!", "success");
             // Update global state
             if (!USER_AVATAR) window.USER_AVATAR = {};
-            USER_AVATAR.type = "dicebear";
-            USER_AVATAR.value = value;
+            window.USER_AVATAR.type = "dicebear";
+            window.USER_AVATAR.value = value;
             // Update sidebar avatar
             updateSidebarAvatar("dicebear", value);
+            
+            // Refresh messages to show new avatar on old messages immediately
+            currentMessages = null;
+            pollMessages();
         }
     })
     .catch(() => showToast("Error saving avatar", "error"));
@@ -1168,9 +1172,13 @@ if (avatarFileInput) {
                 showToast("Avatar uploaded!", "success");
                 // Update global state
                 if (!USER_AVATAR) window.USER_AVATAR = {};
-                USER_AVATAR.type = "upload";
-                USER_AVATAR.value = data.filename;
+                window.USER_AVATAR.type = "upload";
+                window.USER_AVATAR.value = data.filename;
                 updateSidebarAvatar("upload", data.filename);
+
+                // Refresh messages to show new avatar on old messages immediately
+                currentMessages = null;
+                pollMessages();
             }
         })
         .catch(() => showToast("Error uploading avatar", "error"));

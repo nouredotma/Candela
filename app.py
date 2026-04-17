@@ -158,6 +158,51 @@ def get_user_avatars(usernames):
     return avatar_map
 
 
+def sync_user_data_update(old_username, new_username):
+    """Sync username change across all messages and room creators."""
+    # 1. Update Room Creators
+    if os.path.exists(ROOMS_FILE):
+        rooms = load_json(ROOMS_FILE)
+        changed = False
+        for r in rooms:
+            if r.get("creator", "").lower() == old_username.lower():
+                r["creator"] = new_username
+                changed = True
+        if changed:
+            save_json(ROOMS_FILE, rooms)
+
+    # 2. Update all message files
+    for filename in os.listdir(MESSAGES_DIR):
+        if filename.endswith(".json"):
+            filepath = os.path.join(MESSAGES_DIR, filename)
+            try:
+                msgs = load_json(filepath)
+                changed_msgs = False
+                for m in msgs:
+                    if m.get("username", "").lower() == old_username.lower():
+                        m["username"] = new_username
+                        changed_msgs = True
+                if changed_msgs:
+                    save_json(filepath, msgs)
+            except:
+                continue
+
+    # 3. Update online.json
+    if os.path.exists(ONLINE_FILE):
+        online = load_json(ONLINE_FILE)
+        changed_online = False
+        for room in online:
+            room_users = online[room]
+            # Find matching keys (case-insensitive)
+            matches = [u for u in room_users.keys() if u.lower() == old_username.lower()]
+            for m in matches:
+                timestamp = room_users.pop(m)
+                room_users[new_username] = timestamp
+                changed_online = True
+        if changed_online:
+            save_json(ONLINE_FILE, online)
+
+
 # ── Routes ───────────────────────────────────────────────────────────────────
 
 @app.route("/")
@@ -621,6 +666,9 @@ def update_username():
             break
 
     save_json(USERS_FILE, users)
+
+    # Sync historical data (messages, rooms)
+    sync_user_data_update(old_username, new_username)
 
     # Update session
     session["username"] = new_username
