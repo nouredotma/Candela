@@ -63,14 +63,14 @@
         <!-- Tab 2: Login Form for Registered Users -->
         <div id="tab-login" class="tab-content">
             <div class="join-section">
-                <form id="login-form" class="join-form">
+                <form id="login-form" class="join-form" autocomplete="off">
                     <div class="form-group">
                         <label for="login-username">Username</label>
-                        <input type="text" id="login-username" placeholder="Your registered username" required>
+                        <input type="text" id="login-username" name="username" placeholder="Your registered username" autocomplete="username" required>
                     </div>
                     <div class="form-group">
                         <label for="login-password">Password</label>
-                        <input type="password" id="login-password" placeholder="Your password" required>
+                        <input type="password" id="login-password" name="password" placeholder="Your password" autocomplete="current-password" required>
                     </div>
                     <div id="login-error" class="form-error" style="display:none;"></div>
                     <button type="submit" class="btn-chat-primary">Login</button>
@@ -82,14 +82,14 @@
         <div id="tab-register" class="tab-content">
             <div class="join-section">
                 <p class="register-hint">Register to reserve your username.</p>
-                <form id="register-form" class="join-form">
+                <form id="register-form" class="join-form" autocomplete="off">
                     <div class="form-group">
                         <label for="reg-username">Username</label>
-                        <input type="text" id="reg-username" placeholder="Choose a username" required>
+                        <input type="text" id="reg-username" name="username" placeholder="Choose a username" autocomplete="off" required>
                     </div>
                     <div class="form-group">
                         <label for="reg-password">Password</label>
-                        <input type="password" id="reg-password" placeholder="Choose a password" required>
+                        <input type="password" id="reg-password" name="new-password" placeholder="Choose a password" autocomplete="new-password" required>
                     </div>
                     <div id="register-error" class="form-error" style="display:none;"></div>
                     <div id="register-success" class="form-success" style="display:none;"></div>
