@@ -131,15 +131,22 @@ function renderMessages(messages) {
         html += `    </div>`;
 
         if (msg.message) {
-            html += `    <div class="message-text">${escapeHtml(msg.message)}</div>`;
+            const isBig = isSingleEmoji(msg.message);
+            html += `    <div class="message-text ${isBig ? 'big-emoji-text' : ''}">${escapeHtml(msg.message)}</div>`;
         }
 
         // Show image or file if attached
         if (msg.image) {
             const isImg = /\.(jpg|jpeg|png|gif|webp)$/i.test(msg.image);
             const isPdf = /\.pdf$/i.test(msg.image);
+            
+            let imgSrc = msg.image;
+            if (!imgSrc.startsWith("http")) {
+                imgSrc = `/static/uploads/${msg.image}`;
+            }
+
             if (isImg) {
-                html += `    <img class="message-attachment message-image" src="/static/uploads/${msg.image}" alt="attachment" onclick="openLightbox(this.src)" onload="scrollToBottom()">`;
+                html += `    <img class="message-attachment message-image" src="${imgSrc}" alt="attachment" onclick="openLightbox(this.src)" onload="scrollToBottom()">`;
             } else if (isPdf) {
                 html += `    <div class="message-attachment message-file message-pdf" onclick="window.open('/static/uploads/${msg.image}', '_blank')">`;
                 html += `       <i class="bi bi-file-earmark-pdf-fill me-2"></i>`;
@@ -529,6 +536,36 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+/**
+ * Check if the message contains only a single emoji.
+ * @param {string} text - The message text
+ * @returns {boolean}
+ */
+function isSingleEmoji(text) {
+    if (!text) return false;
+    const trimmed = text.trim();
+    
+    // 1. Check if it's in our emoji picker list
+    if (typeof OPENMOJI_DATA !== "undefined" && OPENMOJI_DATA.some(item => item.emoji === trimmed)) {
+        return true;
+    }
+    
+    // 2. Check for single emoji using regex (basic detection)
+    // Matches most common single emoji characters
+    const emojiRegex = /^(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])$/;
+    if (emojiRegex.test(trimmed)) return true;
+
+    // 3. Fallback: If it's 1-2 chars long and looks like an emoji (high-surrogate)
+    if (trimmed.length > 0 && trimmed.length <= 2) {
+        const charCode = trimmed.charCodeAt(0);
+        if (charCode >= 0xD800 && charCode <= 0xDBFF) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 
 // ══════════════════════════════════════════════════════════════════════════
 // Event Listeners
@@ -736,3 +773,61 @@ if (lightbox) {
 
 // Export to window so its callable from dynamic HTML
 window.openLightbox = openLightbox;
+
+// ══════════════════════════════════════════════════════════════════════════
+// Media Picker (Emoji)
+// ══════════════════════════════════════════════════════════════════════════
+
+const mediaPickerPopup = document.getElementById("media-picker-popup");
+const btnEmojiPicker = document.getElementById("btn-emoji-picker");
+const emojiGrid = document.getElementById("emoji-grid");
+const messageInput = document.getElementById("message-input");
+
+// Toggle popup
+function toggleMediaPicker() {
+    if (mediaPickerPopup.style.display === "none" || mediaPickerPopup.style.display === "") {
+        mediaPickerPopup.style.display = "flex";
+    } else {
+        mediaPickerPopup.style.display = "none";
+    }
+}
+
+// Event listeners for popup buttons
+if (btnEmojiPicker) {
+    btnEmojiPicker.addEventListener("click", (e) => {
+        e.stopPropagation();
+        toggleMediaPicker();
+    });
+}
+
+// Close popup when clicking outside
+window.addEventListener("click", (e) => {
+    if (mediaPickerPopup && 
+        mediaPickerPopup.style.display === "flex" && 
+        !mediaPickerPopup.contains(e.target) && 
+        !btnEmojiPicker.contains(e.target)) {
+        mediaPickerPopup.style.display = "none";
+    }
+});
+
+// Render Emojis from OPENMOJI_DATA
+if (emojiGrid && typeof OPENMOJI_DATA !== "undefined") {
+    let emojiHtml = "";
+    OPENMOJI_DATA.forEach(item => {
+        emojiHtml += `<button class="emoji-btn" data-emoji="${item.emoji}" title="${item.hexcode}">${item.emoji}</button>`;
+    });
+    emojiGrid.innerHTML = emojiHtml;
+
+    // Attach click listeners
+    const emojiBtns = emojiGrid.querySelectorAll(".emoji-btn");
+    emojiBtns.forEach(btn => {
+        btn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const emojiChar = btn.dataset.emoji;
+            if (messageInput) {
+                messageInput.value += emojiChar;
+                messageInput.focus();
+            }
+        });
+    });
+}

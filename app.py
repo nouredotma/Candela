@@ -242,7 +242,7 @@ def send():
         "username": session["username"],
         "message": message_text,
         "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "type": "text"
+        "type": data.get("type", "text")
     }
 
     # If there's a file attachment (image or PDF)
@@ -250,7 +250,7 @@ def send():
         msg["image"] = image
         if image.lower().endswith(".pdf"):
             msg["type"] = "pdf"
-        else:
+        elif msg["type"] != "gif":
             msg["type"] = "image"
 
     # Load existing messages and append

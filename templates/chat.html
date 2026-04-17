@@ -101,6 +101,14 @@
                             </div>
                             <button id="remove-image" class="btn-remove-image">✕</button>
                         </div>
+                        
+                        <!-- Emoji Picker -->
+                        <div id="media-picker-popup" class="media-picker-popup" style="display:none;">
+                            <div id="picker-emoji" class="picker-content active">
+                                <div id="emoji-grid" class="emoji-grid"></div>
+                            </div>
+                        </div>
+
                         <div class="input-capsule">
                             <label for="file-upload" class="btn-input-action" title="Attach file">
                                 <i class="bi bi-plus-lg"></i>
@@ -110,8 +118,7 @@
                             <input type="text" id="message-input" placeholder="Type a message..." autocomplete="off">
                             
                             <div class="input-right-actions">
-                                <button class="btn-input-action" title="Emoji"><i class="bi bi-emoji-smile"></i></button>
-                                <button class="btn-input-action" title="GIF"><i class="bi bi-sticky"></i></button>
+                                <button id="btn-emoji-picker" class="btn-input-action" title="Emoji"><i class="bi bi-emoji-smile"></i></button>
                             </div>
                         </div>
                     </div>
@@ -207,6 +214,7 @@
         const IS_SECURE = JSON.parse("{{ 'true' if is_secure else 'false' }}");
         let UNLOCKED = JSON.parse("{{ 'true' if is_unlocked else 'false' }}");
     </script>
+    <script src="{{ url_for('static', filename='emojis.js') }}"></script>
     <script src="{{ url_for('static', filename='chat.js') }}"></script>
 
 </body>

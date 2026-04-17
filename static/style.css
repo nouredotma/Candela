@@ -726,6 +726,12 @@ input, button, select, textarea {
     overflow-wrap: break-word;
 }
 
+.message-text.big-emoji-text {
+    font-size: 48px;
+    line-height: 1.2;
+    margin: 8px 0;
+}
+
 .message-attachment {
     margin-top: 10px;
     margin-left: 24px; /* Shifted to the right as requested */
@@ -1243,5 +1249,75 @@ input, button, select, textarea {
 @keyframes toastOut {
     from { transform: translateY(0); opacity: 1; }
     to { transform: translateY(-30px); opacity: 0; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   EMOJI & GIF PICKER
+   ══════════════════════════════════════════════════════════════════════════ */
+.media-picker-popup {
+    position: absolute;
+    bottom: 100%;
+    right: 12px;
+    margin-bottom: 8px;
+    width: 320px;
+    height: 380px;
+    background: rgba(25, 35, 30, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    animation: popupFadeIn 0.2s ease-out;
+}
+
+@keyframes popupFadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.picker-content {
+    display: none;
+    flex: 1;
+    overflow: hidden;
+    flex-direction: column;
+}
+
+.picker-content.active {
+    display: flex;
+}
+
+/* Emoji Grid */
+.emoji-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+    padding: 12px;
+    overflow-y: auto;
+}
+
+.emoji-btn {
+    background: transparent;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 4px;
+    transition: background 0.1s, transform 0.1s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.emoji-img {
+    width: 28px;
+    height: 28px;
+}
+
+.emoji-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: scale(1.1);
 }
 
