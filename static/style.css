@@ -576,8 +576,8 @@ input, button, select, textarea {
 }
 
 .btn-chat-primary-xs {
-    padding: 8px 12px !important;
-    font-size: 12px !important;
+    padding: 10px 12px !important;
+    font-size: 11px !important;
     background-color: #ffffff !important;
     color: #447768 !important;
     font-weight: 700;

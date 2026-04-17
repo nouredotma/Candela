@@ -21,7 +21,6 @@ let selectedImageFile = null;   // Currently selected image for attachment
  * Fetch all messages for the current room and update the feed.
  */
 function pollMessages() {
-    if (typeof IS_SECURE !== 'undefined' && IS_SECURE && typeof UNLOCKED !== 'undefined' && !UNLOCKED) return;
 
     fetch(`/messages/${CURRENT_ROOM}`)
         .then(res => res.json())
@@ -48,7 +47,6 @@ setInterval(pollMessages, 2000);
  * Fetch online users for the current room and update the sidebar.
  */
 function pollOnlineUsers() {
-    if (typeof IS_SECURE !== 'undefined' && IS_SECURE && typeof UNLOCKED !== 'undefined' && !UNLOCKED) return;
 
     fetch(`/online/${CURRENT_ROOM}`)
         .then(res => res.json())
@@ -71,7 +69,6 @@ setInterval(pollOnlineUsers, 5000);
  * Send a heartbeat to the server to mark the user as online.
  */
 function sendHeartbeat() {
-    if (typeof IS_SECURE !== 'undefined' && IS_SECURE && typeof UNLOCKED !== 'undefined' && !UNLOCKED) return;
 
     fetch("/heartbeat", {
         method: "POST",

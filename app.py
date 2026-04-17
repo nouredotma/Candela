@@ -237,8 +237,6 @@ def send():
 @app.route("/messages/<room>")
 def messages(room):
     """Return all messages for a room as JSON."""
-    if not check_room_access(room):
-        return jsonify({"error": "Room is secure and locked"}), 403
 
     messages_file = os.path.join(MESSAGES_DIR, f"{room}.json")
     if os.path.exists(messages_file):
@@ -258,8 +256,6 @@ def rooms():
 @app.route("/online/<room>")
 def online(room):
     """Return list of online users in room as JSON."""
-    if not check_room_access(room):
-        return jsonify([])
 
     users = get_online_users(room)
     return jsonify(users)
