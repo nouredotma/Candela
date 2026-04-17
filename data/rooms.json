@@ -11,12 +11,5 @@
     "created_at": "2026-04-17 21:17:50",
     "is_secure": true,
     "password": "1424"
-  },
-  {
-    "name": "sup-isi",
-    "creator": "marrakeshtravel",
-    "created_at": "2026-04-17 21:20:03",
-    "is_secure": false,
-    "password": null
   }
 ]

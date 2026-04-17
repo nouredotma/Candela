@@ -24,76 +24,99 @@
 </head>
 <body class="join-page">
 
-    <div class="join-container">
-        <!-- Logo -->
-        <div class="join-logo">
-            <a href="/chat/general" class="logo-wrapper">
-                <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Candela Logo" class="main-logo">
-                <span class="logo-text">Candela</span>
-            </a>
-            <p class="join-subtitle">Join a room and start chatting — no account needed.</p>
-        </div>
-
-        <!-- Error message -->
-        {% if error %}
-        <div class="error-banner">{{ error }}</div>
-        {% endif %}
-
-        <!-- Tab Bar -->
-        <div class="tab-bar">
-            <button class="tab-btn active" data-tab="guest">Join as Guest</button>
-            <button class="tab-btn" data-tab="login">Login</button>
-            <button class="tab-btn" data-tab="register">Create Account</button>
-        </div>
-
-        <!-- Tab 1: Guest Join Form -->
-        <div id="tab-guest" class="tab-content active">
-            <div class="join-section">
-                <form action="/join" method="POST" class="join-form">
-                    <div class="form-group">
-                        <label for="username">Username</label>
-                        <input type="text" id="username" name="username" placeholder="Pick a username" required>
-                    </div>
-                    <input type="hidden" name="room" value="general">
-                    <button type="submit" class="btn-chat-primary">Join Room</button>
-                </form>
+    <div class="join-layout">
+        <!-- Left Side: Illustration -->
+        <div class="join-left">
+            <div class="floating-img-wrapper">
+                <img src="/static/img/login.png" alt="Chat Illustration" class="floating-img">
+                <div class="floating-badge">
+                    <img src="/static/img/logo.png" alt="Logo" class="badge-icon">
+                    <span class="badge-text">1.2k+ Active Now</span>
+                    <div class="status-dot"></div>
+                </div>
             </div>
         </div>
 
-        <!-- Tab 2: Login Form for Registered Users -->
-        <div id="tab-login" class="tab-content">
-            <div class="join-section">
-                <form id="login-form" class="join-form" autocomplete="off">
-                    <div class="form-group">
-                        <label for="login-username">Username</label>
-                        <input type="text" id="login-username" name="username" placeholder="Your registered username" autocomplete="username" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="login-password">Password</label>
-                        <input type="password" id="login-password" name="password" placeholder="Your password" autocomplete="current-password" required>
-                    </div>
-                    <div id="login-error" class="form-error" style="display:none;"></div>
-                    <button type="submit" class="btn-chat-primary">Login</button>
-                </form>
-            </div>
-        </div>
+        <!-- Right Side: Form -->
+        <div class="join-right">
+            <div class="join-container">
+                <!-- Logo -->
+                <div class="join-logo">
+                    <a href="/chat/general" class="logo-wrapper">
+                        <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Candela Logo" class="main-logo">
+                        <span class="logo-text">Candela</span>
+                    </a>
+                    <p class="join-subtitle">Join a room and start chatting — no account needed.</p>
+                </div>
 
-        <!-- Tab 3: Register -->
-        <div id="tab-register" class="tab-content">
-            <div class="join-section">
-                <p class="register-hint">Register to reserve your username.</p>
-                <form id="register-form" class="join-form" autocomplete="off">
-                    <div class="form-group">
-                        <label for="reg-username">Username</label>
-                        <input type="text" id="reg-username" name="username" placeholder="Choose a username" autocomplete="off" required>
+                <!-- Error message -->
+                {% if error %}
+                <div class="error-banner">{{ error }}</div>
+                {% endif %}
+
+                <!-- Tab Bar -->
+                <div class="tab-bar">
+                    <div class="tab-slider"></div>
+                    <button class="tab-btn active" data-tab="guest" data-index="0">Join as Guest</button>
+                    <button class="tab-btn" data-tab="login" data-index="1">Login</button>
+                    <button class="tab-btn" data-tab="register" data-index="2">Create Account</button>
+                </div>
+
+                <!-- Content Viewport -->
+                <div class="join-content-viewport">
+                    <div id="join-content-wrapper" class="join-content-wrapper">
+                        <!-- Tab 1: Guest Join Form -->
+                        <div id="tab-guest" class="tab-content active">
+                            <div class="join-section">
+                                <form action="/join" method="POST" class="join-form">
+                                    <div class="form-group">
+                                        <label for="username">Username</label>
+                                        <input type="text" id="username" name="username" placeholder="Pick a username" required>
+                                    </div>
+                                    <input type="hidden" name="room" value="general">
+                                    <button type="submit" class="btn-chat-primary">Join Room</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Tab 2: Login Form for Registered Users -->
+                        <div id="tab-login" class="tab-content">
+                            <div class="join-section">
+                                <form id="login-form" class="join-form" autocomplete="off">
+                                    <div class="form-group">
+                                        <label for="login-username">Username</label>
+                                        <input type="text" id="login-username" name="username" placeholder="Your registered username" autocomplete="username" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="login-password">Password</label>
+                                        <input type="password" id="login-password" name="password" placeholder="Your password" autocomplete="current-password" required>
+                                    </div>
+                                    <div id="login-error" class="form-error" style="display:none;"></div>
+                                    <button type="submit" class="btn-chat-primary">Login</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Tab 3: Register -->
+                        <div id="tab-register" class="tab-content">
+                            <div class="join-section">
+                                <p class="register-hint">Register to reserve your username.</p>
+                                <form id="register-form" class="join-form" autocomplete="off">
+                                    <div class="form-group">
+                                        <label for="reg-username">Username</label>
+                                        <input type="text" id="reg-username" name="username" placeholder="Choose a username" autocomplete="off" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="reg-password">Password</label>
+                                        <input type="password" id="reg-password" name="new-password" placeholder="Choose a password" autocomplete="new-password" required>
+                                    </div>
+                                    <div id="register-error" class="form-error" style="display:none;"></div>
+                                    <button type="submit" class="btn-chat-primary">Register</button>
+                                </form>
+                            </div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="reg-password">Password</label>
-                        <input type="password" id="reg-password" name="new-password" placeholder="Choose a password" autocomplete="new-password" required>
-                    </div>
-                    <div id="register-error" class="form-error" style="display:none;"></div>
-                    <button type="submit" class="btn-chat-primary">Register</button>
-                </form>
+                </div>
             </div>
         </div>
     </div>
@@ -102,10 +125,21 @@
         // ── Tab Switching ───────────────────────────────────────────────────
         const tabBtns = document.querySelectorAll(".tab-btn");
         const tabContents = document.querySelectorAll(".tab-content");
+        const tabSlider = document.querySelector(".tab-slider");
+        const contentWrapper = document.getElementById("join-content-wrapper");
+
+        function updateViewportHeight() {
+            const activeContent = document.querySelector(".tab-content.active");
+            const viewport = document.querySelector(".join-content-viewport");
+            if (activeContent && viewport) {
+                viewport.style.height = activeContent.offsetHeight + "px";
+            }
+        }
 
         tabBtns.forEach(function(btn) {
             btn.addEventListener("click", function() {
                 const target = btn.getAttribute("data-tab");
+                const index = btn.getAttribute("data-index");
 
                 // Remove active from all tabs and content
                 tabBtns.forEach(function(b) { b.classList.remove("active"); });
@@ -113,9 +147,27 @@
 
                 // Activate clicked tab and its content
                 btn.classList.add("active");
-                document.getElementById("tab-" + target).classList.add("active");
+                const activeTab = document.getElementById("tab-" + target);
+                activeTab.classList.add("active");
+
+                // Move slider
+                if (tabSlider) {
+                    tabSlider.style.transform = `translateX(${index * 100}%)`;
+                }
+
+                // Move content wrapper
+                if (contentWrapper) {
+                    contentWrapper.style.transform = `translateX(-${index * (100 / 3)}%)`;
+                }
+
+                // Update height after a small delay to allow DOM transition to settle
+                setTimeout(updateViewportHeight, 10);
             });
         });
+
+        // Initialize height on load
+        window.addEventListener("load", updateViewportHeight);
+        window.addEventListener("resize", updateViewportHeight);
 
         // ── Login Form Handler ──────────────────────────────────────────────
         document.getElementById("login-form").addEventListener("submit", function(e) {

@@ -52,7 +52,12 @@
             <div class="sidebar-footer">
                 <div class="user-profile" id="profile-trigger">
                     <div class="user-avatar">{{ username[0] | upper }}</div>
-                    <span class="user-badge">{{ username }}</span>
+                    <div class="user-info-text">
+                        <span class="user-badge">{{ username }}</span>
+                        <span class="user-status-subtitle" id="user-status-subtitle">
+                            {% if is_registered %}Registered Account{% else %}Guest Account{% endif %}
+                        </span>
+                    </div>
                     <div id="profile-dropdown" class="profile-dropdown">
                         <a href="#" class="dropdown-item"><i class="bi bi-person me-2"></i> Profile</a>
                         <a href="/logout" class="dropdown-item logout"><i class="bi bi-box-arrow-right me-2"></i> Logout</a>

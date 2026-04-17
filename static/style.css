@@ -61,19 +61,136 @@ input, button, select, textarea {
    ══════════════════════════════════════════════════════════════════════════ */
 
 .join-page {
-    display: flex;
-    justify-content: center;
-    align-items: center;
     min-height: 100vh;
+    overflow-x: hidden;
+}
+
+.join-layout {
+    display: flex;
+    width: 100%;
+    height: 100vh; /* Use fixed height instead of min-height to prevent expansion */
+}
+
+/* ── Left Side: Illustration ───────────────────────────────────────────── */
+.join-left {
+    flex: 1;
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    padding: 32px 0 32px 32px;
+    min-height: 0; /* Allow flex item to shrink */
+}
+
+.floating-img-wrapper {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    position: relative; /* For absolute children */
+}
+
+.floating-badge {
+    position: absolute;
+    top: 40px;
+    right: 40px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 12px 20px;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: floatingBadge 4s ease-in-out infinite;
+    z-index: 10;
+}
+
+.floating-badge .badge-icon {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+}
+
+.floating-badge .badge-text {
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    letter-spacing: 0.5px;
+}
+
+.floating-badge .status-dot {
+    width: 7px;
+    height: 7px;
+    background: #679c8f;
+    border-radius: 50%;
+    position: relative;
+}
+
+.floating-badge .status-dot::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    border-radius: 50%;
+    background: inherit;
+    animation: pings 2s ease-out infinite;
+}
+
+@keyframes floatingBadge {
+    0%, 100% { transform: translateY(0) translateX(0); }
+    50% { transform: translateY(-12px) translateX(-5px); }
+}
+
+@keyframes pings {
+    0% { transform: scale(1); opacity: 0.8; }
+    100% { transform: scale(3.5); opacity: 0; }
+}
+
+.floating-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 24px;
+    display: block;
+    animation: slowFloat 8s ease-in-out infinite;
+}
+
+@keyframes slowFloat {
+    0%, 100% { transform: scale(1.02) translate(0, 0); }
+    50% { transform: scale(1.05) translate(5px, 5px); }
+}
+
+/* ── Right Side: Form Container ─────────────────────────────────────────── */
+.join-right {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    background: transparent;
+    overflow-y: auto; /* Allow form to scroll internally if needed */
+    height: 100%;
 }
 
 .join-container {
-    width: 480px;
-    max-height: 90vh;
-    overflow-y: auto;
-    padding: 24px;
+    width: 460px;
+    padding: 40px 24px 24px 24px; /* Increased top padding to push content down slightly for better visual balance */
     background: transparent;
-    border-radius: 16px;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .join-left {
+        display: none;
+    }
+    .join-right {
+        flex: 1;
+        padding: 20px;
+    }
+    .join-container {
+        width: 100%;
+        max-width: 440px;
+    }
 }
 
 .join-logo {
@@ -92,7 +209,6 @@ input, button, select, textarea {
 .main-logo {
     height: 60px;
     width: auto;
-    filter: drop-shadow(0 4px 10px rgba(0,0,0,0.1));
 }
 
 .join-logo .logo-text {
@@ -125,16 +241,31 @@ input, button, select, textarea {
     display: flex;
     background: rgba(255, 255, 255, 0.12);
     border-radius: 50px;
-    padding: 6px;
+    padding: 4px;
     margin-bottom: 24px;
-    gap: 4px;
     border: 1px solid rgba(255, 255, 255, 0.15);
+    position: relative;
+    overflow: hidden;
+}
+
+.tab-slider {
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    left: 4px;
+    width: calc((100% - 8px) / 3);
+    background: #ffffff;
+    border-radius: 50px;
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 0;
 }
 
 .tab-btn {
+    position: relative;
+    z-index: 1;
     flex: 1;
     padding: 10px 8px;
-    background: transparent;
+    background: transparent !important;
     color: rgba(255, 255, 255, 0.7);
     font-size: 12px;
     font-weight: 600;
@@ -143,7 +274,7 @@ input, button, select, textarea {
     cursor: pointer;
     border: none;
     border-radius: 50px;
-    transition: all 0.3s ease;
+    transition: color 0.3s ease;
     text-align: center;
 }
 
@@ -152,18 +283,42 @@ input, button, select, textarea {
 }
 
 .tab-btn.active {
-    background: #ffffff;
     color: #447768;
 }
 
-/* Tab Content */
+/* Tab Content Sliding */
+.join-content-viewport {
+    overflow: hidden;
+    width: 100%;
+    margin-top: 8px; /* Extra space after tab bar */
+    transition: height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.join-content-wrapper {
+    display: flex;
+    width: 300%; /* For 3 tabs */
+    align-items: flex-start; /* Ensure height is determined by the active tab via JS */
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 .tab-content {
-    display: none;
+    flex: 0 0 33.3333%;
+    width: 33.3333%;
+    display: block !important;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+    padding: 0 4px; /* Slight horizontal padding for forms */
 }
 
 .tab-content.active {
-    display: block;
-    animation: fadeIn 0.4s ease;
+    opacity: 1;
+    pointer-events: all;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 @keyframes fadeIn {
@@ -187,7 +342,7 @@ input, button, select, textarea {
 .join-form {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
 }
 
 .form-group {
@@ -543,6 +698,20 @@ input, button, select, textarea {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    line-height: 1.2;
+}
+
+.user-info-text {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.user-status-subtitle {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.5);
+    font-weight: 500;
+    line-height: 1.2;
 }
 
 /* ── Center Chat Area (7/12 = 58.33%) — White Background ─────────────────────── */

@@ -1326,9 +1326,12 @@ if (btnGuestRegister) {
                 document.getElementById("profile-guest-view").style.display = "none";
                 document.getElementById("profile-registered-view").style.display = "block";
 
-                // Update badge
+                // Update badge and subtitle
                 const badge = document.getElementById("profile-badge-status");
-                badge.innerHTML = '<i class="bi bi-patch-check-fill me-1"></i> Registered';
+                if (badge) badge.innerHTML = '<i class="bi bi-patch-check-fill me-1"></i> Registered';
+                
+                const subtitle = document.getElementById("user-status-subtitle");
+                if (subtitle) subtitle.textContent = "Registered Account";
 
                 // Initialize registered features
                 renderDicebearStyleTabs();
