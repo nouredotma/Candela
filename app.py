@@ -105,12 +105,38 @@ def is_username_registered(username):
     return False
 
 
+def get_sanitized_rooms():
+    """Returns all rooms, stripping out passwords to safely send to frontend."""
+    rooms = load_json(ROOMS_FILE)
+    for r in rooms:
+        if "password" in r:
+            del r["password"]
+    return rooms
+
+
+def is_room_secure(room_name):
+    """Check if a room requires a password."""
+    rooms = load_json(ROOMS_FILE)
+    for r in rooms:
+        if r["name"] == room_name:
+            return r.get("is_secure", False)
+    return False
+
+
+def check_room_access(room_name):
+    """Returns True if the user has access to the room (not secure, or unlocked in session)."""
+    if not is_room_secure(room_name):
+        return True
+    unlocked_rooms = session.get("unlocked_rooms", [])
+    return room_name in unlocked_rooms
+
+
 # ── Routes ───────────────────────────────────────────────────────────────────
 
 @app.route("/")
 def index():
     """Index/join page."""
-    rooms = load_json(ROOMS_FILE)
+    rooms = get_sanitized_rooms()
     return render_template("index.html", rooms=rooms)
 
 
@@ -122,17 +148,17 @@ def join():
 
     # Validate input
     if not username:
-        rooms = load_json(ROOMS_FILE)
+        rooms = get_sanitized_rooms()
         return render_template("index.html", rooms=rooms, error="Username is required.")
 
     # Check if username is registered (guest trying to use a registered name)
     if is_username_registered(username) and not session.get("logged_in"):
-        rooms = load_json(ROOMS_FILE)
+        rooms = get_sanitized_rooms()
         return render_template("index.html", rooms=rooms, error="This username is registered, please login.")
 
     # Check for duplicate username in the room
     if is_username_taken_in_room(username, room):
-        rooms = load_json(ROOMS_FILE)
+        rooms = get_sanitized_rooms()
         return render_template("index.html", rooms=rooms, error="Username is already taken in this room.")
 
     # Set session
@@ -150,15 +176,18 @@ def chat(room):
         return redirect("/")
 
     # Check if room exists
-    rooms = load_json(ROOMS_FILE)
-    room_names = [r["name"] for r in rooms]
+    safe_rooms = get_sanitized_rooms()
+    room_names = [r["name"] for r in safe_rooms]
     if room not in room_names:
         return redirect("/")
 
     # Update session room
     session["room"] = room
+    
+    is_secure = is_room_secure(room)
+    is_unlocked = check_room_access(room)
 
-    return render_template("chat.html", room=room, username=session["username"], rooms=rooms)
+    return render_template("chat.html", room=room, username=session["username"], rooms=safe_rooms, is_secure=is_secure, is_unlocked=is_unlocked)
 
 
 @app.route("/send", methods=["POST"])
@@ -169,6 +198,10 @@ def send():
 
     data = request.json
     room = data.get("room", session.get("room", "general"))
+    
+    if not check_room_access(room):
+        return jsonify({"error": "Room is secure and locked"}), 403
+
     message_text = data.get("message", "").strip()
     image = data.get("image", None)
 
@@ -204,6 +237,9 @@ def send():
 @app.route("/messages/<room>")
 def messages(room):
     """Return all messages for a room as JSON."""
+    if not check_room_access(room):
+        return jsonify({"error": "Room is secure and locked"}), 403
+
     messages_file = os.path.join(MESSAGES_DIR, f"{room}.json")
     if os.path.exists(messages_file):
         msgs = load_json(messages_file)
@@ -215,13 +251,16 @@ def messages(room):
 @app.route("/rooms")
 def rooms():
     """Return list of all rooms as JSON."""
-    room_list = load_json(ROOMS_FILE)
+    room_list = get_sanitized_rooms()
     return jsonify(room_list)
 
 
 @app.route("/online/<room>")
 def online(room):
     """Return list of online users in room as JSON."""
+    if not check_room_access(room):
+        return jsonify([])
+
     users = get_online_users(room)
     return jsonify(users)
 
@@ -231,6 +270,7 @@ def create_room():
     """Create a new room."""
     data = request.json
     room_name = data.get("name", "").strip().lower().replace(" ", "-")
+    password = data.get("password", "").strip()
 
     if not room_name:
         return jsonify({"error": "Room name is required"}), 400
@@ -245,9 +285,17 @@ def create_room():
     # Add new room
     rooms.append({
         "name": room_name,
-        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "is_secure": bool(password),
+        "password": password if password else None
     })
     save_json(ROOMS_FILE, rooms)
+    
+    # Unlock for the creator
+    if password:
+        session_unlocked = session.get("unlocked_rooms", [])
+        session_unlocked.append(room_name)
+        session["unlocked_rooms"] = session_unlocked
 
     # Create empty messages file for the room
     messages_file = os.path.join(MESSAGES_DIR, f"{room_name}.json")
@@ -328,6 +376,9 @@ def heartbeat():
 
     data = request.json
     room = data.get("room", session.get("room", "general"))
+    
+    if not check_room_access(room):
+        return jsonify({"error": "Room is secure and locked"}), 403
 
     online = load_json(ONLINE_FILE)
 
@@ -346,6 +397,10 @@ def upload():
     if "username" not in session:
         return jsonify({"error": "Not logged in"}), 401
 
+    room = session.get("room", "general")
+    if not check_room_access(room):
+        return jsonify({"error": "Room is secure and locked"}), 403
+
     if "image" not in request.files:
         return jsonify({"error": "No image uploaded"}), 400
 
@@ -360,6 +415,36 @@ def upload():
     file.save(filepath)
 
     return jsonify({"status": "ok", "filename": filename})
+
+
+@app.route("/unlock-room", methods=["POST"])
+def unlock_room():
+    """Unlock a secure room with a password."""
+    if "username" not in session:
+        return jsonify({"error": "Not logged in"}), 401
+
+    data = request.json
+    room_name = data.get("room", "").strip()
+    password = data.get("password", "").strip()
+
+    rooms = load_json(ROOMS_FILE)
+    room_data = next((r for r in rooms if r["name"] == room_name), None)
+
+    if not room_data:
+        return jsonify({"error": "Room not found"}), 404
+
+    if not room_data.get("is_secure"):
+        return jsonify({"status": "ok"})
+
+    if room_data.get("password") == password:
+        unlocked = session.get("unlocked_rooms", [])
+        if room_name not in unlocked:
+            unlocked.append(room_name)
+            session["unlocked_rooms"] = unlocked
+            session.modified = True
+        return jsonify({"status": "ok"})
+    else:
+        return jsonify({"error": "Incorrect password"}), 401
 
 
 # ── Initialize and Run ───────────────────────────────────────────────────────

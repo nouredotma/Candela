@@ -21,6 +21,8 @@ let selectedImageFile = null;   // Currently selected image for attachment
  * Fetch all messages for the current room and update the feed.
  */
 function pollMessages() {
+    if (typeof IS_SECURE !== 'undefined' && IS_SECURE && typeof UNLOCKED !== 'undefined' && !UNLOCKED) return;
+
     fetch(`/messages/${CURRENT_ROOM}`)
         .then(res => res.json())
         .then(messages => {
@@ -46,6 +48,8 @@ setInterval(pollMessages, 2000);
  * Fetch online users for the current room and update the sidebar.
  */
 function pollOnlineUsers() {
+    if (typeof IS_SECURE !== 'undefined' && IS_SECURE && typeof UNLOCKED !== 'undefined' && !UNLOCKED) return;
+
     fetch(`/online/${CURRENT_ROOM}`)
         .then(res => res.json())
         .then(users => {
@@ -67,6 +71,8 @@ setInterval(pollOnlineUsers, 5000);
  * Send a heartbeat to the server to mark the user as online.
  */
 function sendHeartbeat() {
+    if (typeof IS_SECURE !== 'undefined' && IS_SECURE && typeof UNLOCKED !== 'undefined' && !UNLOCKED) return;
+
     fetch("/heartbeat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -312,7 +318,9 @@ function clearImagePreview() {
  */
 function createRoom() {
     const input = document.getElementById("new-room-name");
+    const pwdInput = document.getElementById("new-room-password");
     const roomName = input.value.trim().toLowerCase().replace(/\s+/g, '-');
+    const roomPassword = pwdInput ? pwdInput.value.trim() : "";
     const errorDiv = document.getElementById("create-room-error");
 
     if (!roomName) {
@@ -324,7 +332,7 @@ function createRoom() {
     fetch("/create-room", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: roomName })
+        body: JSON.stringify({ name: roomName, password: roomPassword })
     })
     .then(res => res.json())
     .then(data => {
@@ -339,6 +347,48 @@ function createRoom() {
     })
     .catch(err => {
         errorDiv.textContent = "Error creating room.";
+        errorDiv.style.display = "block";
+    });
+}
+
+/**
+ * Unlock a secure room via fetch.
+ */
+function unlockRoom() {
+    const pwdInput = document.getElementById("room-password-input");
+    const password = pwdInput.value.trim();
+    const errorDiv = document.getElementById("unlock-error");
+
+    if (!password) {
+        errorDiv.textContent = "Please enter a password.";
+        errorDiv.style.display = "block";
+        return;
+    }
+
+    fetch("/unlock-room", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ room: CURRENT_ROOM, password: password })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.error) {
+            errorDiv.textContent = data.error;
+            errorDiv.style.display = "block";
+        } else {
+            // Success
+            UNLOCKED = true;
+            document.getElementById("secure-room-overlay").style.display = "none";
+            document.getElementById("chat-content-wrapper").classList.remove("secure-blurred");
+            
+            // Resume polling immediately
+            pollMessages();
+            pollOnlineUsers();
+            sendHeartbeat();
+        }
+    })
+    .catch(err => {
+        errorDiv.textContent = "Error unlocking room.";
         errorDiv.style.display = "block";
     });
 }
@@ -430,6 +480,29 @@ document.getElementById("new-room-name").addEventListener("keydown", function(e)
         createRoom();
     }
 });
+const newRoomPwdObj = document.getElementById("new-room-password");
+if (newRoomPwdObj) {
+    newRoomPwdObj.addEventListener("keydown", function(e) {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            createRoom();
+        }
+    });
+}
+
+// Unlock Room Event Listeners
+const unlockBtn = document.getElementById("unlock-btn");
+const roomPwdInput = document.getElementById("room-password-input");
+if (unlockBtn && roomPwdInput) {
+    unlockBtn.addEventListener("click", unlockRoom);
+    
+    roomPwdInput.addEventListener("keydown", function(e) {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            unlockRoom();
+        }
+    });
+}
 
 
 // ══════════════════════════════════════════════════════════════════════════

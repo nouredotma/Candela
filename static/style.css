@@ -188,12 +188,15 @@ input, button, select, textarea {
 }
 
 .form-group label {
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 600;
     color: #ffffff;
-    text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-left: 12px;
+}
+
+.modal-body .form-group label {
+    color: #447768;
 }
 
 .form-group input,
@@ -335,11 +338,10 @@ input, button, select, textarea {
 /* ── Sidebar Section Title ─────────────────────────────────────────────── */
 .sidebar-section-title {
     padding: 14px 20px 8px;
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 600;
     color: #ffffff;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
+    letter-spacing: 1px;
 }
 
 /* ── Room List ─────────────────────────────────────────────────────────── */
@@ -522,6 +524,58 @@ input, button, select, textarea {
     background-color: transparent;
     color: #ffffff;
     border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+}
+
+.chat-content-wrapper {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+}
+
+.secure-blurred {
+    filter: blur(8px);
+    pointer-events: none;
+    user-select: none;
+    opacity: 0.6;
+}
+
+/* ── Secure Room Overlay ───────────────────────────────────────────────── */
+.secure-room-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.secure-content {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 36px 40px;
+    text-align: center;
+    color: white;
+    width: 90%;
+    max-width: 360px;
+}
+
+.secure-lock-icon {
+    font-size: 48px;
+    color: #ffffff;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.lock-icon {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 14px;
 }
 
 /* ── Chat Header ───────────────────────────────────────────────────────── */

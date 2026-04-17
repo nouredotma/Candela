@@ -30,7 +30,12 @@
                 <ul id="room-list" class="room-list">
                     {% for r in rooms %}
                     <li class="room-item {% if r.name == room %}active{% endif %}">
-                        <a href="/chat/{{ r.name }}"># {{ r.name }}</a>
+                        <a href="/chat/{{ r.name }}" class="d-flex justify-content-between align-items-center">
+                            <span># {{ r.name }}</span>
+                            {% if r.get('is_secure') %}
+                            <i class="bi bi-lock-fill lock-icon"></i>
+                            {% endif %}
+                        </a>
                     </li>
                     {% endfor %}
                 </ul>
@@ -49,7 +54,24 @@
         </aside>
 
         <!-- ── Center: Chat Area (6/12) ────────────────────────────────────── -->
-        <main class="chat-center">
+        <main class="chat-center position-relative">
+            <!-- Secure Room Overlay -->
+            {% if is_secure and not is_unlocked %}
+            <div id="secure-room-overlay" class="secure-room-overlay">
+                <div class="secure-content shadow">
+                    <i class="bi bi-lock-fill secure-lock-icon"></i>
+                    <h3 class="mb-2" style="font-weight: 700;">Secure Room</h3>
+                    <p style="font-size: 13px; opacity: 0.8; margin-bottom: 20px;">Enter the password to interact.</p>
+                    <div class="form-group mb-3 mx-auto" style="max-width: 260px;">
+                        <input type="password" id="room-password-input" placeholder="Password" autocomplete="off" class="text-center w-100">
+                    </div>
+                    <div id="unlock-error" class="form-error" style="display:none; margin-bottom: 15px;"></div>
+                    <button id="unlock-btn" class="btn-chat-primary mt-0 w-100" style="max-width: 260px;">Unlock Room</button>
+                </div>
+            </div>
+            {% endif %}
+
+            <div id="chat-content-wrapper" class="chat-content-wrapper {% if is_secure and not is_unlocked %}secure-blurred{% endif %}">
             <!-- Header -->
             <div class="chat-header">
                 <div class="chat-header-info">
@@ -76,6 +98,8 @@
                     <button id="remove-image" class="btn-remove-image">✕</button>
                 </div>
             </div>
+
+            </div> <!-- /chat-content-wrapper -->
         </main>
 
         <!-- ── Right Sidebar: Online Users (3/12) ─────────────────────────── -->
@@ -104,6 +128,10 @@
                     <label for="new-room-name">Room Name</label>
                     <input type="text" id="new-room-name" placeholder="e.g. coffee-break" autocomplete="off">
                 </div>
+                <div class="form-group mt-3">
+                    <label for="new-room-password">Password (Optional)</label>
+                    <input type="password" id="new-room-password" placeholder="Leave blank for public room" autocomplete="off">
+                </div>
                 <div id="create-room-error" class="form-error" style="display:none;"></div>
                 <button id="create-room-btn" class="btn-chat-primary">Create Room</button>
             </div>
@@ -114,6 +142,10 @@
     <script>
         const CURRENT_ROOM = "{{ room }}";
         const CURRENT_USER = "{{ username }}";
+        // @ts-ignore
+        const IS_SECURE = {{ 'true' if is_secure else 'false' }};
+        // @ts-ignore
+        let UNLOCKED = {{ 'true' if is_unlocked else 'false' }};
     </script>
     <script src="{{ url_for('static', filename='chat.js') }}"></script>
 
