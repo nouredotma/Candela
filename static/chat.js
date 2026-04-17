@@ -394,6 +394,10 @@ function createRoom() {
     const roomName = input.value.trim().toLowerCase().replace(/\s+/g, '-');
     const roomPassword = pwdInput ? pwdInput.value.trim() : "";
     const errorDiv = document.getElementById("create-room-error");
+    
+    // Clear previous error
+    errorDiv.style.display = "none";
+    errorDiv.textContent = "";
 
     if (!roomName) {
         errorDiv.textContent = "Room name is required.";
@@ -438,6 +442,10 @@ function unlockRoom() {
     const pwdInput = document.getElementById("room-password-input");
     const password = pwdInput.value.trim();
     const errorDiv = document.getElementById("unlock-error");
+    
+    // Clear previous error
+    errorDiv.style.display = "none";
+    errorDiv.textContent = "";
 
     if (!password) {
         errorDiv.textContent = "Please enter a password.";
@@ -633,6 +641,12 @@ if (messagesFeed) {
 // Modal Controls
 const createModal = document.getElementById("create-modal");
 document.getElementById("open-create-modal").addEventListener("click", () => {
+    // Clear previous errors when opening the modal
+    const err = document.getElementById("create-room-error");
+    if (err) {
+        err.style.display = "none";
+        err.textContent = "";
+    }
     createModal.style.display = "flex";
     document.getElementById("new-room-name").focus();
 });

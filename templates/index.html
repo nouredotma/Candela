@@ -50,9 +50,10 @@
                 </div>
 
                 <!-- Error message -->
-                {% if error %}
-                <div class="error-banner">{{ error }}</div>
-                {% endif %}
+                <!-- Error/Feedback Banner -->
+                <div id="error-banner" class="error-banner" {% if not error %}style="display:none;"{% endif %}>
+                    {{ error if error else '' }}
+                </div>
 
                 <!-- Tab Bar -->
                 <div class="tab-bar">
@@ -91,7 +92,6 @@
                                         <label for="login-password">Password</label>
                                         <input type="password" id="login-password" name="password" placeholder="Your password" autocomplete="current-password" required>
                                     </div>
-                                    <div id="login-error" class="form-error" style="display:none;"></div>
                                     <button type="submit" class="btn-chat-primary">Login</button>
                                 </form>
                             </div>
@@ -110,7 +110,6 @@
                                         <label for="reg-password">Password</label>
                                         <input type="password" id="reg-password" name="new-password" placeholder="Choose a password" autocomplete="new-password" required>
                                     </div>
-                                    <div id="register-error" class="form-error" style="display:none;"></div>
                                     <button type="submit" class="btn-chat-primary">Register</button>
                                 </form>
                             </div>
@@ -127,6 +126,14 @@
         const tabContents = document.querySelectorAll(".tab-content");
         const tabSlider = document.querySelector(".tab-slider");
         const contentWrapper = document.getElementById("join-content-wrapper");
+        const globalErrorBanner = document.getElementById("error-banner");
+
+        function clearError() {
+            if (globalErrorBanner) {
+                globalErrorBanner.textContent = "";
+                globalErrorBanner.style.display = "none";
+            }
+        }
 
         function updateViewportHeight() {
             const activeContent = document.querySelector(".tab-content.active");
@@ -144,6 +151,9 @@
                 // Remove active from all tabs and content
                 tabBtns.forEach(function(b) { b.classList.remove("active"); });
                 tabContents.forEach(function(c) { c.classList.remove("active"); });
+
+                // Clear any existing error messages when switching tabs
+                clearError();
 
                 // Activate clicked tab and its content
                 btn.classList.add("active");
@@ -182,7 +192,8 @@
             e.preventDefault();
             const username = document.getElementById("login-username").value.trim();
             const password = document.getElementById("login-password").value.trim();
-            const errorDiv = document.getElementById("login-error");
+            
+            clearError();
 
             fetch("/login", {
                 method: "POST",
@@ -192,8 +203,8 @@
             .then(res => res.json())
             .then(data => {
                 if (data.error) {
-                    errorDiv.textContent = data.error;
-                    errorDiv.style.display = "block";
+                    globalErrorBanner.textContent = data.error;
+                    globalErrorBanner.style.display = "block";
                 } else {
                     // Redirect to general room after login
                     window.location.href = "/chat/general";
@@ -206,7 +217,8 @@
             e.preventDefault();
             const username = document.getElementById("reg-username").value.trim();
             const password = document.getElementById("reg-password").value.trim();
-            const errorDiv = document.getElementById("register-error");
+            
+            clearError();
 
             fetch("/register", {
                 method: "POST",
@@ -216,8 +228,8 @@
             .then(res => res.json())
             .then(data => {
                 if (data.error) {
-                    errorDiv.textContent = data.error;
-                    errorDiv.style.display = "block";
+                    globalErrorBanner.textContent = data.error;
+                    globalErrorBanner.style.display = "block";
                 } else {
                     // Redirect immediately to general room after registration
                     window.location.href = "/chat/general";

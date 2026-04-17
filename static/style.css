@@ -232,10 +232,11 @@ input, button, select, textarea {
     background-color: rgba(200, 50, 50, 0.15);
     border: 1px solid rgba(200, 50, 50, 0.4);
     color: #e06060;
-    padding: 10px 14px;
+    padding: 10px 20px;
     font-size: 13px;
     margin-bottom: 20px;
-    border-radius: 8px;
+    border-radius: 50px;
+    text-align: center;
 }
 
 /* ── Tabs ──────────────────────────────────────────────────────────────── */
