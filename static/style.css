@@ -640,6 +640,28 @@ input, button, select, textarea {
     overflow-y: auto;
     padding: 16px 24px;
     background: transparent;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ── Empty State ────────────────────────────────────────────────────────── */
+.empty-state {
+    margin: auto;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.4);
+    animation: fadeIn 0.8s ease;
+    max-width: 400px;
+}
+
+.empty-icon {
+    display: none; /* Removed as requested */
+}
+
+.empty-state p {
+    font-size: 14px;
+    font-weight: 500;
+    margin: 0;
+    line-height: 1.6;
 }
 
 /* ── Single Message ────────────────────────────────────────────────────── */

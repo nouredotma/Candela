@@ -9,7 +9,7 @@
 // State
 // ══════════════════════════════════════════════════════════════════════════
 
-let currentMessages = [];       // Cache of messages to detect new ones
+let currentMessages = null;     // Cache of messages to detect new ones
 let selectedImageFile = null;   // Currently selected image for attachment
 
 
@@ -25,8 +25,8 @@ function pollMessages() {
     fetch(`/messages/${CURRENT_ROOM}`)
         .then(res => res.json())
         .then(messages => {
-            // Only re-render if message count changed (new messages)
-            if (messages.length !== currentMessages.length) {
+            // Re-render if messsage list is new or count changed
+            if (currentMessages === null || messages.length !== currentMessages.length) {
                 currentMessages = messages;
                 renderMessages(messages);
                 scrollToBottom();
@@ -99,8 +99,8 @@ function renderMessages(messages) {
     if (messages.length === 0) {
         feed.innerHTML = `
             <div class="empty-state">
-                <div class="empty-icon">💬</div>
-                <p>No messages yet. Start the conversation!</p>
+                <p style="font-weight: 700; color: #fff; margin-bottom: 4px; font-size: 16px;">Welcome to #${CURRENT_ROOM}!</p>
+                <p>This is the start of the conversation. Be the first to say something!</p>
             </div>
         `;
         return;
