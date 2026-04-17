@@ -86,17 +86,24 @@
                         <!-- Messages will be injected here by JS -->
                     </div>
 
-                    <!-- Message Input Bar -->
+                    <!-- Message Input Bar (Floating Capsule) -->
                     <div class="message-input-bar">
-                        <div class="input-row">
-                            <input type="text" id="message-input" placeholder="Type a message..." autocomplete="off">
-                            <label for="image-upload" class="btn-attach" title="Attach image">📎</label>
-                            <input type="file" id="image-upload" accept="image/*" style="display:none;">
-                            <button id="send-btn" class="btn-send">Send</button>
-                        </div>
                         <div id="image-preview" class="image-preview" style="display:none;">
                             <img id="preview-img" src="" alt="preview">
                             <button id="remove-image" class="btn-remove-image">✕</button>
+                        </div>
+                        <div class="input-capsule">
+                            <label for="file-upload" class="btn-input-action" title="Attach file">
+                                <i class="bi bi-plus-lg"></i>
+                            </label>
+                            <input type="file" id="file-upload" style="display:none;">
+                            
+                            <input type="text" id="message-input" placeholder="Type a message..." autocomplete="off">
+                            
+                            <div class="input-right-actions">
+                                <button class="btn-input-action" title="Emoji"><i class="bi bi-emoji-smile"></i></button>
+                                <button class="btn-input-action" title="GIF"><i class="bi bi-sticky"></i></button>
+                            </div>
                         </div>
                     </div>
                 </div> <!-- /chat-content-wrapper -->
@@ -135,6 +142,19 @@
                 </div>
                 <div id="create-room-error" class="form-error" style="display:none;"></div>
                 <button id="create-room-btn" class="btn-chat-primary">Create Room</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Lightbox Overlay -->
+    <div id="lightbox" class="lightbox-overlay" style="display:none;">
+        <button id="lightbox-close" class="btn-lightbox-close">✕</button>
+        <div class="lightbox-content">
+            <img id="lightbox-img" src="" alt="Full view">
+            <div class="lightbox-actions">
+                <a id="lightbox-download" href="#" download class="btn-lightbox-action">
+                    <i class="bi bi-download me-2"></i> Download
+                </a>
             </div>
         </div>
     </div>

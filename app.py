@@ -404,9 +404,9 @@ def upload():
     if file.filename == "":
         return jsonify({"error": "No file selected"}), 400
 
-    # Generate unique filename
+    # Generate unique filename with Candela prefix
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    filename = f"{session['username']}_{timestamp}_{file.filename}"
+    filename = f"Candela_{timestamp}_{file.filename}"
     filepath = os.path.join(UPLOADS_DIR, filename)
     file.save(filepath)
 

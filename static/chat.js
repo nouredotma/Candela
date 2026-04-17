@@ -10,7 +10,7 @@
 // ══════════════════════════════════════════════════════════════════════════
 
 let currentMessages = null;     // Cache of messages to detect new ones
-let selectedImageFile = null;   // Currently selected image for attachment
+let selectedFile = null;        // Currently selected file for attachment
 
 
 // ══════════════════════════════════════════════════════════════════════════
@@ -124,9 +124,17 @@ function renderMessages(messages) {
             html += `    <div class="message-text">${escapeHtml(msg.message)}</div>`;
         }
 
-        // Show image if attached
+        // Show image or file if attached
         if (msg.image) {
-            html += `    <img class="message-image" src="/static/uploads/${msg.image}" alt="attachment" onclick="window.open(this.src, '_blank')">`;
+            const isImg = /\.(jpg|jpeg|png|gif|webp)$/i.test(msg.image);
+            if (isImg) {
+                html += `    <img class="message-attachment message-image" src="/static/uploads/${msg.image}" alt="attachment" onclick="openLightbox(this.src)">`;
+            } else {
+                html += `    <div class="message-attachment message-file" onclick="window.open('/static/uploads/${msg.image}', '_blank')">`;
+                html += `       <i class="bi bi-file-earmark-arrow-down me-2"></i>`;
+                html += `       <span>${escapeHtml(msg.image.split('_').slice(2).join('_'))}</span>`;
+                html += `    </div>`;
+            }
         }
 
         html += `  </div>`;
@@ -193,24 +201,24 @@ function sendMessage() {
     const input = document.getElementById("message-input");
     const messageText = input.value.trim();
 
-    // Must have either text or image
-    if (!messageText && !selectedImageFile) {
+    // Must have either text or file
+    if (!messageText && !selectedFile) {
         return;
     }
 
-    // If there's an image, upload it first
-    if (selectedImageFile) {
-        uploadImage(selectedImageFile, function(filename) {
-            // Send the message with image filename
+    // Capture file and clear input immediately
+    const fileToUpload = selectedFile;
+    input.value = "";
+    clearFilePreview(); 
+
+    if (fileToUpload) {
+        uploadFile(fileToUpload, function(filename) {
             postMessage(messageText, filename);
-            clearImagePreview();
         });
     } else {
         postMessage(messageText, null);
     }
 
-    // Clear input
-    input.value = "";
     input.focus();
 }
 
@@ -247,11 +255,11 @@ function postMessage(message, image) {
 }
 
 /**
- * Upload an image file to the server.
- * @param {File} file - The image file
+ * Upload a file to the server.
+ * @param {File} file - The file to upload
  * @param {Function} callback - Called with the uploaded filename
  */
-function uploadImage(file, callback) {
+function uploadFile(file, callback) {
     const formData = new FormData();
     formData.append("image", file);
 
@@ -276,33 +284,42 @@ function uploadImage(file, callback) {
 // ══════════════════════════════════════════════════════════════════════════
 
 /**
- * Handle image file selection — show preview.
+ * Handle file selection — show preview.
  */
-function handleImageSelect(event) {
+function handleFileSelect(event) {
     const file = event.target.files[0];
     if (!file) return;
 
-    selectedImageFile = file;
+    selectedFile = file;
 
-    // Show preview
-    const reader = new FileReader();
-    reader.onload = function(e) {
+    // Show preview if image
+    const isImg = file.type.startsWith("image/");
+    if (isImg) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const previewDiv = document.getElementById("image-preview");
+            const previewImg = document.getElementById("preview-img");
+            previewImg.src = e.target.result;
+            previewDiv.style.display = "inline-block";
+        };
+        reader.readAsDataURL(file);
+    } else {
+        // Just show filename for non-images
         const previewDiv = document.getElementById("image-preview");
         const previewImg = document.getElementById("preview-img");
-        previewImg.src = e.target.result;
+        previewImg.src = "https://cdn-icons-png.flaticon.com/512/2991/2991108.png"; // Placeholder file icon
         previewDiv.style.display = "inline-block";
-    };
-    reader.readAsDataURL(file);
+    }
 }
 
 /**
- * Clear the image preview and reset selection.
+ * Clear the file preview and reset selection.
  */
-function clearImagePreview() {
-    selectedImageFile = null;
+function clearFilePreview() {
+    selectedFile = null;
     document.getElementById("image-preview").style.display = "none";
     document.getElementById("preview-img").src = "";
-    document.getElementById("image-upload").value = "";
+    document.getElementById("file-upload").value = "";
 }
 
 
@@ -419,9 +436,6 @@ function escapeHtml(text) {
 // Event Listeners
 // ══════════════════════════════════════════════════════════════════════════
 
-// Send message on clicking Send button
-document.getElementById("send-btn").addEventListener("click", sendMessage);
-
 // Send message on pressing Enter key
 document.getElementById("message-input").addEventListener("keydown", function(e) {
     if (e.key === "Enter") {
@@ -430,11 +444,17 @@ document.getElementById("message-input").addEventListener("keydown", function(e)
     }
 });
 
-// Image attachment selection
-document.getElementById("image-upload").addEventListener("change", handleImageSelect);
+// File attachment selection
+document.getElementById("file-upload").addEventListener("change", handleFileSelect);
 
-// Remove image preview
-document.getElementById("remove-image").addEventListener("click", clearImagePreview);
+// Remove file preview
+document.getElementById("remove-image").addEventListener("click", function(e) {
+    e.stopPropagation(); // Don't trigger send when clicking remove
+    clearFilePreview();
+});
+
+// Send on clicking the preview itself
+document.getElementById("image-preview").addEventListener("click", sendMessage);
 
 // Create room button
 document.getElementById("create-room-btn").addEventListener("click", createRoom);
@@ -509,3 +529,53 @@ if (unlockBtn && roomPwdInput) {
 // Load messages and online users immediately on page load
 pollMessages();
 pollOnlineUsers();
+
+
+// ══════════════════════════════════════════════════════════════════════════
+// Lightbox Functionality
+// ══════════════════════════════════════════════════════════════════════════
+
+const lightbox = document.getElementById("lightbox");
+const lightboxImg = document.getElementById("lightbox-img");
+const lightboxDownload = document.getElementById("lightbox-download");
+const lightboxClose = document.getElementById("lightbox-close");
+
+/**
+ * Open the lightbox with the given image source.
+ * @param {string} src - Source URL of the image
+ */
+function openLightbox(src) {
+    if (!lightbox || !lightboxImg || !lightboxDownload) return;
+    lightboxImg.src = src;
+    lightboxDownload.href = src;
+    lightbox.style.display = "flex";
+}
+
+/**
+ * Close the lightbox.
+ */
+function closeLightbox() {
+    if (!lightbox || !lightboxImg) return;
+    lightbox.style.display = "none";
+    lightboxImg.src = "";
+}
+
+// Close on 'X' button
+if (lightboxClose) {
+    lightboxClose.addEventListener("click", (e) => {
+        e.stopPropagation();
+        closeLightbox();
+    });
+}
+
+// Close on clicking outside the image
+if (lightbox) {
+    lightbox.addEventListener("click", (e) => {
+        if (e.target === lightbox) {
+            closeLightbox();
+        }
+    });
+}
+
+// Export to window so its callable from dynamic HTML
+window.openLightbox = openLightbox;
