@@ -525,7 +525,15 @@ input, button, select, textarea {
     font-weight: 700;
     font-size: 15px;
     border-radius: 50%;
+    overflow: hidden;
     flex-shrink: 0;
+}
+
+.user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
 }
 
 .user-badge {
@@ -714,6 +722,15 @@ input, button, select, textarea {
     font-size: 15px;
     color: #447768;
     text-transform: uppercase;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-top: 4px; /* Push down to align with username header */
+}
+
+.message-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
     border-radius: 50%;
 }
 
@@ -952,7 +969,15 @@ input, button, select, textarea {
     font-weight: 700;
     font-size: 14px;
     border-radius: 50%;
+    overflow: hidden;
     flex-shrink: 0;
+}
+
+.online-user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
 }
 
 .online-user-dot {
@@ -1032,20 +1057,36 @@ input, button, select, textarea {
 
 .btn-close {
     position: absolute;
-    top: 16px;
-    right: 16px;
+    top: 12px;
+    right: 12px;
     background: transparent;
     border: none;
     color: #447768;
     font-size: 20px;
     cursor: pointer;
     opacity: 0.6;
-    transition: opacity 0.2s;
+    transition: all 0.2s;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    line-height: 1;
 }
 
 .btn-close:hover {
     opacity: 1;
+    background: rgba(68, 119, 104, 0.08);
+    border-radius: 50%;
 }
+
+.btn-close:focus {
+    outline: 2px solid rgba(68, 119, 104, 0.4);
+    outline-offset: 2px;
+    box-shadow: none;
+}
+
 
 .modal-body {
     display: flex;
@@ -1124,12 +1165,28 @@ input, button, select, textarea {
     font-size: 32px;
     cursor: pointer;
     opacity: 0.6;
-    transition: opacity 0.2s;
+    transition: all 0.2s;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    line-height: 1;
 }
 
 .btn-lightbox-close:hover {
     opacity: 1;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
 }
+
+.btn-lightbox-close:focus {
+    outline: 2px solid rgba(255, 255, 255, 0.4);
+    outline-offset: 4px;
+    box-shadow: none;
+}
+
 
 .btn-lightbox-action {
     display: inline-flex;
@@ -1343,3 +1400,615 @@ input, button, select, textarea {
     transform: scale(1.1);
 }
 
+/* ══════════════════════════════════════════════════════════════════════════
+   PROFILE MODAL
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.profile-modal-content {
+    max-height: 90vh;
+    overflow-y: hidden; /* Scroll inside body instead */
+    width: 680px;
+}
+
+.profile-modal-body {
+    padding: 0 !important;
+    background: #ffffff;
+}
+
+.profile-layout-container {
+    display: flex;
+    min-height: 480px;
+    height: 100%;
+}
+
+/* ── Profile Left Column (Identity Card) ── */
+.profile-card-col {
+    width: 38%;
+    background: rgba(68, 119, 104, 0.05);
+    border-right: 1px solid rgba(68, 119, 104, 0.1);
+    padding: 40px 24px;
+    display: flex;
+    flex-direction: column;
+}
+
+.profile-card-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.profile-avatar-large {
+    width: 120px;
+    height: 120px;
+    background-color: #447768;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 48px;
+    border-radius: 50%;
+    margin-bottom: 20px;
+    border: 4px solid #ffffff;
+    position: relative;
+    overflow: hidden;
+}
+
+.profile-avatar-large img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.profile-identity-info {
+    width: 100%;
+}
+
+.profile-username-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.profile-username-text {
+    font-size: 20px;
+    font-weight: 700;
+    color: #333333;
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.btn-edit-username {
+    background: transparent;
+    color: #447768;
+    font-size: 14px;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: all 0.2s;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-edit-username:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.profile-username-edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    margin-bottom: 12px;
+}
+
+.profile-username-edit-form input {
+    background: #ffffff;
+    border: 1px solid rgba(68, 119, 104, 0.3);
+    color: #333;
+    padding: 8px 12px;
+    border-radius: 4px;
+    width: 100%;
+    text-align: center;
+    font-weight: 600;
+}
+
+.edit-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+}
+
+.btn-username-action {
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-weight: 700;
+    transition: all 0.2s;
+}
+
+.btn-username-action.save {
+    background: #447768;
+    color: white;
+}
+
+.btn-username-action.cancel {
+    background: rgba(0, 0, 0, 0.05);
+    color: #666;
+}
+
+.btn-username-action:hover {
+    transform: translateY(-2px);
+}
+
+.profile-badge-status-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 30px;
+}
+
+.btn-change-password-link {
+    margin-top: auto;
+    background: white;
+    color: #447768;
+    border: 1px solid rgba(68, 119, 104, 0.2);
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+.btn-change-password-link:hover {
+    background: #447768;
+    color: white;
+    border-color: #447768;
+}
+
+/* ── Profile Right Column (Settings Area) ── */
+.profile-settings-col {
+    flex: 1;
+    padding: 24px 0 24px 24px;
+    overflow-y: auto;
+}
+
+.settings-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.settings-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.profile-section-title {
+    margin-bottom: 0;
+}
+
+.btn-settings-back {
+    background: transparent;
+    color: #447768;
+    font-size: 18px;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: all 0.2s;
+}
+
+.btn-settings-back:hover {
+    opacity: 1;
+    transform: translateX(-4px);
+}
+
+/* Compact DiceBear Picker */
+.dicebear-picker-compact {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+
+
+.upload-avatar-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.btn-upload-avatar-box {
+    width: 100%;
+    height: 120px;
+    border: 2px dashed rgba(68, 119, 104, 0.2);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #447768;
+}
+
+.btn-upload-avatar-box i {
+    font-size: 32px;
+}
+
+.btn-upload-avatar-box span {
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.btn-upload-avatar-box:hover {
+    background: rgba(68, 119, 104, 0.05);
+    border-color: #447768;
+}
+
+.avatar-upload-preview-simple img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 3px solid #447768;
+    margin-top: 20px;
+    object-fit: cover;
+}
+
+/* Password Form Compact */
+.password-form-compact {
+    max-width: 320px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.password-form-compact .form-group label {
+    font-size: 12px;
+    margin-bottom: 4px;
+}
+
+.password-form-compact .form-group input {
+    background: rgba(68, 119, 104, 0.04);
+    border: 1px solid rgba(68, 119, 104, 0.1);
+    color: #333;
+    padding: 10px 14px;
+}
+
+/* Guest View Modern */
+.guest-register-prompt-modern {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+}
+
+.guest-register-form {
+    width: 100%;
+    max-width: 300px;
+    margin-top: 20px;
+}
+
+.guest-register-form .form-group input {
+    background: rgba(68, 119, 104, 0.04);
+    border: 1px solid rgba(68, 119, 104, 0.1);
+    color: #333;
+    padding: 12px 16px;
+    border-radius: 8px;
+}
+
+.profile-badge {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 4px 12px;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+}
+
+.profile-badge i {
+    font-size: 12px;
+}
+
+.profile-badge:has(.bi-patch-check-fill) {
+    background: rgba(68, 119, 104, 0.1);
+    color: #447768;
+}
+
+.profile-badge:has(.bi-person-dash) {
+    background: rgba(255, 152, 0, 0.1);
+    color: #e68a00;
+}
+
+/* ── Profile Sections ────────────────────────────────────────────────── */
+.profile-section {
+    padding: 16px 0;
+    border-bottom: 1px solid rgba(68, 119, 104, 0.08);
+}
+
+.profile-section:last-child {
+    border-bottom: none;
+}
+
+.profile-section-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #447768;
+    margin-bottom: 12px;
+}
+
+/* ── Avatar Options Toggle ───────────────────────────────────────────── */
+.profile-avatar-options {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.btn-profile-option {
+    flex: 1;
+    padding: 8px 12px;
+    background: rgba(68, 119, 104, 0.06);
+    border: 1px solid rgba(68, 119, 104, 0.12);
+    color: #447768;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-profile-option:hover {
+    background: rgba(68, 119, 104, 0.12);
+}
+
+.btn-profile-option.active {
+    background: #447768;
+    color: #ffffff;
+    border-color: #447768;
+}
+
+/* ── DiceBear Picker ─────────────────────────────────────────────────── */
+.dicebear-picker {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.dicebear-style-tabs {
+    display: flex;
+    gap: 4px;
+    padding-bottom: 8px;
+    width: 100%;
+}
+
+.dicebear-style-tab {
+    flex: 1;
+    text-align: center;
+    padding: 5px 10px;
+    background: rgba(68, 119, 104, 0.06);
+    border: 1px solid rgba(68, 119, 104, 0.1);
+    color: #447768;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 4px;
+    white-space: nowrap;
+    transition: all 0.2s;
+    text-transform: capitalize;
+}
+
+.dicebear-style-tab:hover {
+    background: rgba(68, 119, 104, 0.15);
+}
+
+.dicebear-style-tab.active {
+    background: #447768;
+    color: #ffffff;
+    border-color: #447768;
+}
+
+.dicebear-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    padding: 4px 0;
+}
+
+.dicebear-avatar-btn {
+    width: 100%;
+    aspect-ratio: 1;
+    padding: 4px;
+    background: rgba(68, 119, 104, 0.04);
+    border: 2px solid transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.dicebear-avatar-btn img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 4px;
+}
+
+.dicebear-avatar-btn:hover {
+    border-color: rgba(68, 119, 104, 0.3);
+    background: rgba(68, 119, 104, 0.08);
+}
+
+.dicebear-avatar-btn.selected {
+    border-color: #447768;
+    background: rgba(68, 119, 104, 0.12);
+    box-shadow: 0 0 0 2px rgba(68, 119, 104, 0.2);
+}
+
+/* ── Upload Avatar ───────────────────────────────────────────────────── */
+.upload-avatar-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+}
+
+.btn-upload-avatar {
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 20px;
+    background: rgba(68, 119, 104, 0.08);
+    border: 1px dashed rgba(68, 119, 104, 0.3);
+    color: #447768;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s;
+    width: 100%;
+    justify-content: center;
+}
+
+.btn-upload-avatar:hover {
+    background: rgba(68, 119, 104, 0.15);
+    border-color: #447768;
+}
+
+.avatar-upload-preview {
+    text-align: center;
+}
+
+.avatar-upload-preview img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 3px solid #447768;
+}
+
+/* ── Profile Save Buttons ────────────────────────────────────────────── */
+.btn-profile-save {
+    width: 100%;
+    padding: 10px 16px;
+    background: #447768;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 600;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 8px;
+}
+
+.btn-profile-save:hover {
+    background: #386155;
+}
+
+.btn-register-accent {
+    background: linear-gradient(135deg, #447768, #56998a);
+}
+
+.btn-register-accent:hover {
+    background: linear-gradient(135deg, #386155, #4a8a7b);
+}
+
+/* ── Guest Register Prompt ───────────────────────────────────────────── */
+.guest-register-prompt {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 20px 0;
+}
+
+.guest-prompt-icon {
+    width: 56px;
+    height: 56px;
+    background: rgba(255, 152, 0, 0.1);
+    color: #e68a00;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    border-radius: 50%;
+}
+
+.guest-prompt-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #447768;
+    margin: 0;
+    text-align: center;
+}
+
+.guest-prompt-text {
+    font-size: 12px;
+    color: #888;
+    text-align: center;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.guest-register-prompt .form-group {
+    width: 100%;
+}
+
+.guest-register-prompt .form-group label {
+    color: #447768;
+    font-size: 12px;
+}
+
+.guest-register-prompt .form-group input {
+    background: rgba(68, 119, 104, 0.08);
+    border: 1px solid rgba(68, 119, 104, 0.15);
+    color: #447768;
+    border-radius: 4px;
+    padding: 10px 14px;
+    width: 100%;
+}
+
+.guest-register-prompt .form-group input::placeholder {
+    color: rgba(68, 119, 104, 0.4);
+}
+
+.guest-register-prompt .form-group input:focus {
+    border-color: rgba(68, 119, 104, 0.4);
+    background: rgba(68, 119, 104, 0.12);
+}
+
+.guest-register-prompt .btn-profile-save {
+    width: 100%;
+}

@@ -100,8 +100,20 @@ sendHeartbeat();
 // ══════════════════════════════════════════════════════════════════════════
 
 /**
+ * Generate HTML for an avatar (image, dicebear SVG, or initial).
+ */
+function getAvatarHtml(avatar, initial) {
+    if (avatar && avatar.type === "dicebear") {
+        const parts = avatar.value.split(":");
+        return `<img src="https://api.dicebear.com/9.x/${parts[0]}/svg?seed=${parts[1]}" alt="avatar" style="width:100%;height:100%;object-fit:cover;">`;
+    } else if (avatar && avatar.type === "upload") {
+        return `<img src="/static/uploads/${avatar.value}" alt="avatar" style="width:100%;height:100%;object-fit:cover;">`;
+    }
+    return initial.toUpperCase();
+}
+
+/**
  * Render all messages into the messages feed div.
- * @param {Array} messages - Array of message objects
  */
 function renderMessages(messages) {
     const feed = document.getElementById("messages-feed");
@@ -121,9 +133,10 @@ function renderMessages(messages) {
         const msg = messages[i];
         const isOwn = msg.username === CURRENT_USER;
         const initial = msg.username.charAt(0).toUpperCase();
+        const avatarHtml = getAvatarHtml(msg.user_avatar, initial);
 
         html += `<div class="message-item ${isOwn ? 'own' : ''}">`;
-        html += `  <div class="message-avatar">${initial}</div>`;
+        html += `  <div class="message-avatar">${avatarHtml}</div>`;
         html += `  <div class="message-content">`;
         html += `    <div class="message-header">`;
         html += `      <span class="message-username">${escapeHtml(msg.username)}</span>`;
@@ -190,13 +203,16 @@ function renderOnlineUsers(users) {
 
     let html = "";
     for (let i = 0; i < users.length; i++) {
-        const initial = users[i].charAt(0).toUpperCase();
+        const user = users[i];
+        const initial = user.username.charAt(0).toUpperCase();
+        const avatarHtml = getAvatarHtml(user.avatar, initial);
+
         html += `<li class="online-user-item">`;
         html += `  <div class="online-avatar-container">`;
-        html += `    <div class="online-user-avatar">${initial}</div>`;
+        html += `    <div class="online-user-avatar">${avatarHtml}</div>`;
         html += `    <div class="online-user-dot"></div>`;
         html += `  </div>`;
-        html += `  <span class="online-user-name">${escapeHtml(users[i])}</span>`;
+        html += `  <span class="online-user-name">${escapeHtml(user.username)}</span>`;
         html += `</li>`;
     }
 
@@ -838,4 +854,490 @@ if (emojiGrid && typeof OPENMOJI_DATA !== "undefined") {
             }
         });
     });
+}
+
+
+// ══════════════════════════════════════════════════════════════════════════
+// Profile Modal
+// ══════════════════════════════════════════════════════════════════════════
+
+const profileModal = document.getElementById("profile-modal");
+const closeProfileBtn = document.getElementById("close-profile-modal");
+
+// DiceBear avatar styles to offer
+const DICEBEAR_STYLES = [
+    "adventurer",
+    "avataaars",
+    "lorelei",
+    "notionists"
+];
+
+// Seeds for generating avatar variations
+const DICEBEAR_SEEDS = [
+    "Felix", "Aneka", "Luna", "Milo", "Zara",
+    "Rocky", "Bella", "Max", "Sophie", "Oscar",
+    "Nala", "Leo", "Coco", "Buddy", "Daisy"
+];
+
+let currentDicebearStyle = DICEBEAR_STYLES[0];
+let selectedAvatarValue = null;
+
+/**
+ * Open the profile modal and initialize the avatar display.
+ */
+function openProfileModal() {
+    profileModal.style.display = "flex";
+    profileDropdown.classList.remove("active");
+
+    // Show correct view based on registration status
+    document.getElementById("profile-registered-view").style.display = IS_REGISTERED ? "block" : "none";
+    document.getElementById("profile-guest-view").style.display = IS_REGISTERED ? "none" : "block";
+
+    // Initialize avatar display
+    initProfileAvatar();
+
+    // Render DiceBear style tabs and grid
+    if (IS_REGISTERED) {
+        renderDicebearStyleTabs();
+        renderDicebearGrid(currentDicebearStyle);
+    }
+}
+
+/**
+ * Initialize the profile avatar display based on saved data.
+ */
+function initProfileAvatar() {
+    const avatarDisplay = document.getElementById("profile-avatar-display");
+    if (!avatarDisplay) return;
+
+    if (USER_AVATAR && USER_AVATAR.type === "dicebear") {
+        const parts = USER_AVATAR.value.split(":");
+        const style = parts[0];
+        const seed = parts[1];
+        avatarDisplay.innerHTML = `<img src="https://api.dicebear.com/9.x/${style}/svg?seed=${seed}" alt="avatar">`;
+    } else if (USER_AVATAR && USER_AVATAR.type === "upload") {
+        avatarDisplay.innerHTML = `<img src="/static/uploads/${USER_AVATAR.value}" alt="avatar">`;
+    } else {
+        avatarDisplay.textContent = CURRENT_USER.charAt(0).toUpperCase();
+    }
+}
+
+/**
+ * Render the DiceBear style tabs.
+ */
+function renderDicebearStyleTabs() {
+    const tabsContainer = document.getElementById("dicebear-style-tabs");
+    if (!tabsContainer) return;
+
+    let html = "";
+    DICEBEAR_STYLES.forEach(style => {
+        const isActive = style === currentDicebearStyle ? "active" : "";
+        const displayName = style.replace(/-/g, " ");
+        html += `<button class="dicebear-style-tab ${isActive}" data-style="${style}">${displayName}</button>`;
+    });
+    tabsContainer.innerHTML = html;
+
+    // Attach click listeners
+    tabsContainer.querySelectorAll(".dicebear-style-tab").forEach(tab => {
+        tab.addEventListener("click", (e) => {
+            e.stopPropagation();
+            currentDicebearStyle = tab.dataset.style;
+            tabsContainer.querySelectorAll(".dicebear-style-tab").forEach(t => t.classList.remove("active"));
+            tab.classList.add("active");
+            renderDicebearGrid(currentDicebearStyle);
+        });
+    });
+}
+
+/**
+ * Render the DiceBear avatar grid for a given style.
+ * @param {string} style - DiceBear style name
+ */
+function renderDicebearGrid(style) {
+    const grid = document.getElementById("dicebear-grid");
+    if (!grid) return;
+
+    let html = "";
+    DICEBEAR_SEEDS.forEach(seed => {
+        const url = `https://api.dicebear.com/9.x/${style}/svg?seed=${seed}`;
+        const value = `${style}:${seed}`;
+        const selectedClass = (selectedAvatarValue === value) ? "selected" : "";
+        html += `<button class="dicebear-avatar-btn ${selectedClass}" data-value="${value}" data-url="${url}">
+            <img src="${url}" alt="${seed}" loading="lazy">
+        </button>`;
+    });
+    grid.innerHTML = html;
+
+    // Click listeners for selecting
+    grid.querySelectorAll(".dicebear-avatar-btn").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            selectedAvatarValue = btn.dataset.value;
+
+            // Visual selection
+            grid.querySelectorAll(".dicebear-avatar-btn").forEach(b => b.classList.remove("selected"));
+            btn.classList.add("selected");
+
+            // Update avatar preview
+            const avatarDisplay = document.getElementById("profile-avatar-display");
+            avatarDisplay.innerHTML = `<img src="${btn.dataset.url}" alt="avatar">`;
+
+            // Save to server
+            saveDicebearAvatar(btn.dataset.value);
+        });
+    });
+}
+
+/**
+ * Save a DiceBear avatar selection to the server.
+ * @param {string} value - style:seed format
+ */
+function saveDicebearAvatar(value) {
+    fetch("/update-avatar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "dicebear", value: value })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.error) {
+            showToast(data.error, "error");
+        } else {
+            showToast("Avatar updated!", "success");
+            // Update global state
+            if (!USER_AVATAR) window.USER_AVATAR = {};
+            USER_AVATAR.type = "dicebear";
+            USER_AVATAR.value = value;
+            // Update sidebar avatar
+            updateSidebarAvatar("dicebear", value);
+        }
+    })
+    .catch(() => showToast("Error saving avatar", "error"));
+}
+
+/**
+ * Update the sidebar avatar to reflect changes.
+ * @param {string} type - "dicebear", "upload", or "initial"
+ * @param {string} value - avatar value
+ */
+function updateSidebarAvatar(type, value) {
+    const sidebarAvatar = document.querySelector(".sidebar-footer .user-avatar");
+    if (!sidebarAvatar) return;
+
+    if (type === "dicebear") {
+        const parts = value.split(":");
+        sidebarAvatar.innerHTML = `<img src="https://api.dicebear.com/9.x/${parts[0]}/svg?seed=${parts[1]}" alt="avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+    } else if (type === "upload") {
+        sidebarAvatar.innerHTML = `<img src="/static/uploads/${value}" alt="avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+    } else {
+        sidebarAvatar.textContent = CURRENT_USER.charAt(0).toUpperCase();
+        sidebarAvatar.innerHTML = CURRENT_USER.charAt(0).toUpperCase();
+    }
+}
+
+// ── Profile Modal: Username Edit Toggle ───────────────────────────────────
+
+const btnEditToggle = document.getElementById("btn-edit-username-toggle");
+const usernameDisplayWrapper = document.getElementById("username-display-wrapper");
+const usernameEditWrapper = document.getElementById("username-edit-wrapper");
+const btnCancelUsername = document.getElementById("btn-cancel-username");
+
+if (btnEditToggle && usernameDisplayWrapper && usernameEditWrapper) {
+    btnEditToggle.addEventListener("click", () => {
+        usernameDisplayWrapper.style.display = "none";
+        usernameEditWrapper.style.display = "flex";
+        document.getElementById("profile-new-username").focus();
+    });
+}
+
+if (btnCancelUsername) {
+    btnCancelUsername.addEventListener("click", () => {
+        usernameDisplayWrapper.style.display = "flex";
+        usernameEditWrapper.style.display = "none";
+        document.getElementById("username-change-error").style.display = "none";
+    });
+}
+
+// ── Profile Modal: Panel Switching ────────────────────────────────────────
+
+const btnTriggerPassword = document.getElementById("btn-trigger-password-view");
+const btnBackToAvatar = document.getElementById("btn-back-to-avatar");
+const avatarPanel = document.getElementById("avatar-settings-panel");
+const passwordPanel = document.getElementById("password-settings-panel");
+
+if (btnTriggerPassword && avatarPanel && passwordPanel) {
+    btnTriggerPassword.addEventListener("click", () => {
+        avatarPanel.style.display = "none";
+        passwordPanel.style.display = "flex";
+        btnTriggerPassword.classList.add("active-accent");
+    });
+}
+
+if (btnBackToAvatar) {
+    btnBackToAvatar.addEventListener("click", () => {
+        avatarPanel.style.display = "flex";
+        passwordPanel.style.display = "none";
+        if (btnTriggerPassword) btnTriggerPassword.classList.remove("active-accent");
+    });
+}
+
+// ── Profile Modal Event Listeners ────────────────────────────────────────
+
+// Open profile modal from dropdown
+const profileLink = document.querySelector(".dropdown-item:not(.logout)");
+if (profileLink) {
+    profileLink.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        openProfileModal();
+    });
+}
+
+// Close profile modal
+if (closeProfileBtn) {
+    closeProfileBtn.addEventListener("click", () => {
+        profileModal.style.display = "none";
+    });
+}
+
+// Close on backdrop click
+window.addEventListener("click", (e) => {
+    if (e.target === profileModal) {
+        profileModal.style.display = "none";
+    }
+});
+
+// ── Avatar/Upload Toggle ─────────────────────────────────────────────────
+
+const btnChooseAvatar = document.getElementById("btn-choose-avatar");
+const btnChooseUpload = document.getElementById("btn-choose-upload");
+const dicebearPicker = document.getElementById("dicebear-picker");
+const uploadAvatarSection = document.getElementById("upload-avatar-section");
+
+if (btnChooseAvatar && btnChooseUpload) {
+    btnChooseAvatar.addEventListener("click", () => {
+        btnChooseAvatar.classList.add("active");
+        btnChooseUpload.classList.remove("active");
+        if (dicebearPicker) dicebearPicker.style.display = "flex";
+        if (uploadAvatarSection) uploadAvatarSection.style.display = "none";
+    });
+
+    btnChooseUpload.addEventListener("click", () => {
+        btnChooseUpload.classList.add("active");
+        btnChooseAvatar.classList.remove("active");
+        if (dicebearPicker) dicebearPicker.style.display = "none";
+        if (uploadAvatarSection) uploadAvatarSection.style.display = "flex";
+    });
+}
+
+// ── Avatar File Upload ───────────────────────────────────────────────────
+
+const avatarFileInput = document.getElementById("avatar-file-upload");
+if (avatarFileInput) {
+    avatarFileInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // Show preview
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+            const previewDiv = document.getElementById("avatar-upload-preview");
+            const previewImg = document.getElementById("avatar-preview-img");
+            if (previewImg) previewImg.src = ev.target.result;
+            if (previewDiv) previewDiv.style.display = "block";
+
+            // Update main avatar display
+            const avatarDisplay = document.getElementById("profile-avatar-display");
+            if (avatarDisplay) avatarDisplay.innerHTML = `<img src="${ev.target.result}" alt="avatar">`;
+        };
+        reader.readAsDataURL(file);
+
+        // Upload to server
+        const formData = new FormData();
+        formData.append("avatar", file);
+
+        fetch("/upload-avatar", {
+            method: "POST",
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                showToast(data.error, "error");
+            } else {
+                showToast("Avatar uploaded!", "success");
+                // Update global state
+                if (!USER_AVATAR) window.USER_AVATAR = {};
+                USER_AVATAR.type = "upload";
+                USER_AVATAR.value = data.filename;
+                updateSidebarAvatar("upload", data.filename);
+            }
+        })
+        .catch(() => showToast("Error uploading avatar", "error"));
+    });
+}
+
+// ── Save Username ────────────────────────────────────────────────────────
+
+const btnSaveUsername = document.getElementById("btn-save-username");
+if (btnSaveUsername) {
+    btnSaveUsername.addEventListener("click", () => {
+        const newUsername = document.getElementById("profile-new-username").value.trim();
+        const errorDiv = document.getElementById("username-change-error");
+
+        if (!newUsername) {
+            errorDiv.textContent = "Username is required.";
+            errorDiv.style.display = "block";
+            return;
+        }
+
+        if (newUsername === CURRENT_USER) {
+            errorDiv.textContent = "This is already your username.";
+            errorDiv.style.display = "block";
+            return;
+        }
+
+        errorDiv.style.display = "none";
+
+        fetch("/update-username", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username: newUsername })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                errorDiv.textContent = data.error;
+                errorDiv.style.display = "block";
+            } else {
+                showToast("Username updated! Refreshing...", "success");
+                setTimeout(() => window.location.reload(), 1000);
+            }
+        })
+        .catch(() => {
+            errorDiv.textContent = "Error updating username.";
+            errorDiv.style.display = "block";
+        });
+    });
+}
+
+// ── Save Password ────────────────────────────────────────────────────────
+
+const btnSavePassword = document.getElementById("btn-save-password");
+if (btnSavePassword) {
+    btnSavePassword.addEventListener("click", () => {
+        const currentPwd = document.getElementById("profile-current-password").value.trim();
+        const newPwd = document.getElementById("profile-new-password").value.trim();
+        const errorDiv = document.getElementById("password-change-error");
+        const successDiv = document.getElementById("password-change-success");
+
+        errorDiv.style.display = "none";
+        successDiv.style.display = "none";
+
+        if (!currentPwd || !newPwd) {
+            errorDiv.textContent = "Both fields are required.";
+            errorDiv.style.display = "block";
+            return;
+        }
+
+        if (newPwd.length < 4) {
+            errorDiv.textContent = "New password must be at least 4 characters.";
+            errorDiv.style.display = "block";
+            return;
+        }
+
+        fetch("/update-password", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ current_password: currentPwd, new_password: newPwd })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                errorDiv.textContent = data.error;
+                errorDiv.style.display = "block";
+            } else {
+                successDiv.textContent = "Password updated successfully!";
+                successDiv.style.display = "block";
+                document.getElementById("profile-current-password").value = "";
+                document.getElementById("profile-new-password").value = "";
+                showToast("Password changed!", "success");
+            }
+        })
+        .catch(() => {
+            errorDiv.textContent = "Error updating password.";
+            errorDiv.style.display = "block";
+        });
+    });
+}
+
+// ── Guest Registration ───────────────────────────────────────────────────
+
+const btnGuestRegister = document.getElementById("btn-guest-register");
+if (btnGuestRegister) {
+    btnGuestRegister.addEventListener("click", () => {
+        const password = document.getElementById("guest-register-password").value.trim();
+        const confirm = document.getElementById("guest-register-confirm").value.trim();
+        const errorDiv = document.getElementById("guest-register-error");
+
+        errorDiv.style.display = "none";
+
+        if (!password) {
+            errorDiv.textContent = "Password is required.";
+            errorDiv.style.display = "block";
+            return;
+        }
+
+        if (password.length < 4) {
+            errorDiv.textContent = "Password must be at least 4 characters.";
+            errorDiv.style.display = "block";
+            return;
+        }
+
+        if (password !== confirm) {
+            errorDiv.textContent = "Passwords do not match.";
+            errorDiv.style.display = "block";
+            return;
+        }
+
+        fetch("/register-guest", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ password: password })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                errorDiv.textContent = data.error;
+                errorDiv.style.display = "block";
+            } else {
+                IS_REGISTERED = true;
+                showToast("Account registered! Welcome aboard!", "success");
+
+                // Switch views
+                document.getElementById("profile-guest-view").style.display = "none";
+                document.getElementById("profile-registered-view").style.display = "block";
+
+                // Update badge
+                const badge = document.getElementById("profile-badge-status");
+                badge.innerHTML = '<i class="bi bi-patch-check-fill me-1"></i> Registered';
+
+                // Initialize registered features
+                renderDicebearStyleTabs();
+                renderDicebearGrid(currentDicebearStyle);
+            }
+        })
+        .catch(() => {
+            errorDiv.textContent = "Error registering account.";
+            errorDiv.style.display = "block";
+        });
+    });
+}
+
+// ── Initialize sidebar avatar on page load ───────────────────────────────
+
+if (USER_AVATAR && USER_AVATAR.type === "dicebear") {
+    updateSidebarAvatar("dicebear", USER_AVATAR.value);
+} else if (USER_AVATAR && USER_AVATAR.type === "upload") {
+    updateSidebarAvatar("upload", USER_AVATAR.value);
 }

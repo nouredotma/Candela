@@ -1,6 +1,22 @@
 [
   {
     "username": "noureddine",
-    "password": "$2b$12$a3ZrBgwS6MxcgUOLyAeYq.5LuKLnAfEbGmUGLEMdvIMsoc6r0CqU2"
+    "password": "$2b$12$a3ZrBgwS6MxcgUOLyAeYq.5LuKLnAfEbGmUGLEMdvIMsoc6r0CqU2",
+    "avatar": {
+      "type": "upload",
+      "value": "avatar_bfm1dw.webp"
+    }
+  },
+  {
+    "username": "adil",
+    "password": "$2b$12$siLRjNG58u4ZnUwCm3Mn2.EUEPQo4BeR9ypk5K8CCcICOK9UYT3bm",
+    "avatar": {
+      "type": "upload",
+      "value": "avatar_ey2u9g.jpg"
+    }
+  },
+  {
+    "username": "nine",
+    "password": "$2b$12$s3aEJzTuhIkXOqW5IMhzh.B9UD8zlHrZhVyozRYdksI32yETNUr8S"
   }
 ]

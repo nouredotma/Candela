@@ -198,6 +198,160 @@
         </div>
     </div>
     
+    <!-- ── Profile Modal (Overlay) ────────────────────────────────────── -->
+    <div id="profile-modal" class="modal-overlay" style="display:none;">
+        <div class="modal-content profile-modal-content">
+            <div class="modal-header">
+                <h3>Profile</h3>
+                <button id="close-profile-modal" class="btn-close">✕</button>
+            </div>
+            <div class="modal-body profile-modal-body">
+                <div class="profile-layout-container">
+                    
+                    <!-- ── Left Column: Identity Card ── -->
+                    <div class="profile-card-col">
+                        <div class="profile-card-inner">
+                            <div id="profile-avatar-display" class="profile-avatar-large">
+                                {{ username[0] | upper }}
+                            </div>
+                            
+                            <div class="profile-identity-info">
+                                <!-- Editable Username Display -->
+                                <div class="profile-username-wrapper" id="username-display-wrapper">
+                                    <span class="profile-username-text" id="profile-display-name">{{ username }}</span>
+                                    <button class="btn-edit-username" id="btn-edit-username-toggle" title="Change Username">
+                                        <i class="bi bi-pencil-fill"></i>
+                                    </button>
+                                </div>
+
+                                <!-- Inline Username Edit Form -->
+                                <div class="profile-username-edit-form" id="username-edit-wrapper" style="display:none;">
+                                    <input type="text" id="profile-new-username" autocomplete="off" value="{{ username }}">
+                                    <div class="edit-actions">
+                                        <button id="btn-cancel-username" class="btn-username-action cancel">✕</button>
+                                        <button id="btn-save-username" class="btn-username-action save">✓</button>
+                                    </div>
+                                    <div id="username-change-error" class="form-error" style="display:none; font-size:11px; padding: 4px 0;"></div>
+                                </div>
+
+                                <div class="profile-badge-status-container">
+                                    <div class="profile-badge" id="profile-badge-status">
+                                        {% if is_registered %}
+                                        <i class="bi bi-patch-check-fill me-1"></i> Registered
+                                        {% else %}
+                                        <i class="bi bi-person-dash me-1"></i> Guest
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {% if is_registered %}
+                            <button id="btn-trigger-password-view" class="btn-change-password-link">
+                                <i class="bi bi-shield-lock me-2"></i> Change Password
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- ── Right Column: Settings Area ── -->
+                    <div class="profile-settings-col">
+                        
+                        <!-- REGISTERED USER SETTINGS -->
+                        <div id="profile-registered-view" style="display:none;">
+                            
+                            <!-- Avatar Section (Visible by default) -->
+                            <div id="avatar-settings-panel" class="settings-panel">
+                                <div class="settings-panel-header">
+                                    <div class="profile-section-title">Profile Picture</div>
+                                    <div class="profile-avatar-options">
+                                        <button id="btn-choose-avatar" class="btn-profile-option active">
+                                            <i class="bi bi-emoji-smile me-1"></i> Avatars
+                                        </button>
+                                        <button id="btn-choose-upload" class="btn-profile-option">
+                                            <i class="bi bi-image me-1"></i> Upload
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- DiceBear Avatar Grid -->
+                                <div id="dicebear-picker" class="dicebear-picker-compact">
+                                    <div class="dicebear-style-tabs" id="dicebear-style-tabs">
+                                        <!-- Style tabs injected by JS -->
+                                    </div>
+                                    <div class="dicebear-grid" id="dicebear-grid">
+                                        <!-- Avatars injected by JS -->
+                                    </div>
+                                </div>
+
+                                <!-- Upload Option -->
+                                <div id="upload-avatar-section" class="upload-avatar-section" style="display:none;">
+                                    <label for="avatar-file-upload" class="btn-upload-avatar-box">
+                                        <i class="bi bi-cloud-arrow-up"></i>
+                                        <span>Click to upload image</span>
+                                    </label>
+                                    <input type="file" id="avatar-file-upload" accept="image/*" style="display:none;">
+                                    <div id="avatar-upload-preview" class="avatar-upload-preview-simple" style="display:none;">
+                                        <img id="avatar-preview-img" src="" alt="Preview">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Password Section (Hidden by default, shown on trigger) -->
+                            <div id="password-settings-panel" class="settings-panel" style="display:none;">
+                                <div class="settings-panel-header">
+                                    <div class="profile-section-title">Change Password</div>
+                                    <button id="btn-back-to-avatar" class="btn-settings-back" title="Back to Avatars">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </button>
+                                </div>
+                                <div class="password-form-compact">
+                                    <div class="form-group">
+                                        <label for="profile-current-password">Current Password</label>
+                                        <input type="password" id="profile-current-password" placeholder="••••••••" autocomplete="off">
+                                    </div>
+                                    <div class="form-group mt-2">
+                                        <label for="profile-new-password">New Password</label>
+                                        <input type="password" id="profile-new-password" placeholder="••••••••" autocomplete="off">
+                                    </div>
+                                    <div id="password-change-error" class="form-error" style="display:none; font-size:12px;"></div>
+                                    <div id="password-change-success" class="form-success" style="display:none; font-size:12px;"></div>
+                                    <button id="btn-save-password" class="btn-profile-save mt-3">Update Password</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- GUEST USER VIEW -->
+                        <div id="profile-guest-view" style="display:none;" class="h-100">
+                            <div class="guest-register-prompt-modern">
+                                <div class="guest-prompt-icon">
+                                    <i class="bi bi-person-plus-fill"></i>
+                                </div>
+                                <h4 class="guest-prompt-title">Claim your account</h4>
+                                <p class="guest-prompt-text">Register to save your profile picture and reserve your username.</p>
+                                
+                                <div class="guest-register-form">
+                                    <div class="form-group">
+                                        <input type="password" id="guest-register-password" placeholder="Create a password" autocomplete="new-password">
+                                    </div>
+                                    <div class="form-group mt-2">
+                                        <input type="password" id="guest-register-confirm" placeholder="Confirm password" autocomplete="new-password">
+                                    </div>
+                                    <div id="guest-register-error" class="form-error" style="display:none;"></div>
+                                    <button id="btn-guest-register" class="btn-profile-save btn-register-accent mt-3">
+                                        Register Now
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            </div>
+        </div>
+    </div>
+
     <!-- Lightbox Overlay -->
     <div id="lightbox" class="lightbox-overlay" style="display:none;">
         <button id="lightbox-close" class="btn-lightbox-close">✕</button>
@@ -221,6 +375,8 @@
         const ROOM_CREATOR = "{{ room_creator }}";
         const IS_SECURE = JSON.parse("{{ 'true' if is_secure else 'false' }}");
         let UNLOCKED = JSON.parse("{{ 'true' if is_unlocked else 'false' }}");
+        let IS_REGISTERED = JSON.parse("{{ 'true' if is_registered else 'false' }}");
+        const USER_AVATAR = JSON.parse('{{ user_avatar | tojson }}');
     </script>
     <script src="{{ url_for('static', filename='emojis.js') }}"></script>
     <script src="{{ url_for('static', filename='chat.js') }}"></script>

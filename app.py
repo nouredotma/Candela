@@ -148,6 +148,16 @@ def check_room_access(room_name):
     return room_name in unlocked_rooms
 
 
+def get_user_avatars(usernames):
+    """Return a mapping of usernames to their avatars."""
+    users = load_json(USERS_FILE)
+    avatar_map = {}
+    for username in usernames:
+        user_data = next((u for u in users if u["username"].lower() == username.lower()), None)
+        avatar_map[username] = user_data.get("avatar") if user_data else None
+    return avatar_map
+
+
 # ── Routes ───────────────────────────────────────────────────────────────────
 
 @app.route("/")
@@ -211,13 +221,26 @@ def chat(room):
     room_info = next((r for r in all_rooms if r["name"] == room), None)
     room_creator = room_info.get("creator") if room_info else None
 
+    # Check if user is registered
+    is_registered = session.get("logged_in", False)
+
+    # Get avatar info for the user
+    user_avatar = None
+    if is_registered:
+        users = load_json(USERS_FILE)
+        user_data = next((u for u in users if u["username"].lower() == session["username"].lower()), None)
+        if user_data:
+            user_avatar = user_data.get("avatar", None)
+
     return render_template("chat.html", 
                            room=room, 
                            username=session["username"], 
                            rooms=safe_rooms, 
                            is_secure=is_secure, 
                            is_unlocked=is_unlocked,
-                           room_creator=room_creator)
+                           room_creator=room_creator,
+                           is_registered=is_registered,
+                           user_avatar=user_avatar)
 
 
 @app.route("/send", methods=["POST"])
@@ -274,6 +297,11 @@ def messages(room):
     messages_file = os.path.join(MESSAGES_DIR, f"{room}.json")
     if os.path.exists(messages_file):
         msgs = load_json(messages_file)
+        # Add avatar info to each message
+        usernames = list(set(m["username"] for m in msgs))
+        avatar_map = get_user_avatars(usernames)
+        for m in msgs:
+            m["user_avatar"] = avatar_map.get(m["username"])
     else:
         msgs = []
     return jsonify(msgs)
@@ -290,8 +318,16 @@ def rooms():
 def online(room):
     """Return list of online users in room as JSON."""
 
-    users = get_online_users(room)
-    return jsonify(users)
+    usernames = get_online_users(room)
+    avatar_map = get_user_avatars(usernames)
+    
+    detailed_users = []
+    for u in usernames:
+        detailed_users.append({
+            "username": u,
+            "avatar": avatar_map.get(u)
+        })
+    return jsonify(detailed_users)
 
 
 @app.route("/create-room", methods=["POST"])
@@ -523,6 +559,218 @@ def delete_room():
     if room_name in online:
         del online[room_name]
         save_json(ONLINE_FILE, online)
+
+    return jsonify({"status": "ok"})
+
+
+@app.route("/profile", methods=["GET"])
+def profile_info():
+    """Return current user's profile information."""
+    if "username" not in session:
+        return jsonify({"error": "Not logged in"}), 401
+
+    is_registered = session.get("logged_in", False)
+    avatar = None
+
+    if is_registered:
+        users = load_json(USERS_FILE)
+        user_data = next((u for u in users if u["username"].lower() == session["username"].lower()), None)
+        if user_data:
+            avatar = user_data.get("avatar", None)
+
+    return jsonify({
+        "username": session["username"],
+        "is_registered": is_registered,
+        "avatar": avatar
+    })
+
+
+@app.route("/update-username", methods=["POST"])
+def update_username():
+    """Update the current user's username."""
+    if "username" not in session:
+        return jsonify({"error": "Not logged in"}), 401
+
+    if not session.get("logged_in"):
+        return jsonify({"error": "Only registered users can change their username"}), 403
+
+    data = request.json
+    new_username = data.get("username", "").strip()
+
+    if not new_username:
+        return jsonify({"error": "Username is required"}), 400
+
+    if len(new_username) < 2:
+        return jsonify({"error": "Username must be at least 2 characters"}), 400
+
+    if len(new_username) > 20:
+        return jsonify({"error": "Username must be 20 characters or less"}), 400
+
+    old_username = session["username"]
+
+    # Check if new username is already taken (by another user)
+    users = load_json(USERS_FILE)
+    for user in users:
+        if user["username"].lower() == new_username.lower() and user["username"].lower() != old_username.lower():
+            return jsonify({"error": "Username is already taken"}), 400
+
+    # Update in users.json
+    for user in users:
+        if user["username"].lower() == old_username.lower():
+            user["username"] = new_username
+            break
+
+    save_json(USERS_FILE, users)
+
+    # Update session
+    session["username"] = new_username
+
+    return jsonify({"status": "ok", "username": new_username})
+
+
+@app.route("/update-password", methods=["POST"])
+def update_password():
+    """Update the current user's password."""
+    if "username" not in session:
+        return jsonify({"error": "Not logged in"}), 401
+
+    if not session.get("logged_in"):
+        return jsonify({"error": "Only registered users can change their password"}), 403
+
+    data = request.json
+    current_password = data.get("current_password", "").strip()
+    new_password = data.get("new_password", "").strip()
+
+    if not current_password or not new_password:
+        return jsonify({"error": "Both current and new password are required"}), 400
+
+    if len(new_password) < 4:
+        return jsonify({"error": "New password must be at least 4 characters"}), 400
+
+    # Verify current password
+    users = load_json(USERS_FILE)
+    user_data = next((u for u in users if u["username"].lower() == session["username"].lower()), None)
+
+    if not user_data:
+        return jsonify({"error": "User not found"}), 404
+
+    if not bcrypt.checkpw(current_password.encode("utf-8"), user_data["password"].encode("utf-8")):
+        return jsonify({"error": "Current password is incorrect"}), 401
+
+    # Update password
+    hashed = bcrypt.hashpw(new_password.encode("utf-8"), bcrypt.gensalt())
+    user_data["password"] = hashed.decode("utf-8")
+    save_json(USERS_FILE, users)
+
+    return jsonify({"status": "ok"})
+
+
+@app.route("/update-avatar", methods=["POST"])
+def update_avatar():
+    """Update the current user's avatar (DiceBear style+seed or uploaded image)."""
+    if "username" not in session:
+        return jsonify({"error": "Not logged in"}), 401
+
+    if not session.get("logged_in"):
+        return jsonify({"error": "Only registered users can change their avatar"}), 403
+
+    data = request.json
+    avatar_type = data.get("type", "")  # "dicebear" or "upload"
+    avatar_value = data.get("value", "")  # style:seed or filename
+
+    if not avatar_type or not avatar_value:
+        return jsonify({"error": "Avatar data is required"}), 400
+
+    users = load_json(USERS_FILE)
+    for user in users:
+        if user["username"].lower() == session["username"].lower():
+            user["avatar"] = {
+                "type": avatar_type,
+                "value": avatar_value
+            }
+            break
+
+    save_json(USERS_FILE, users)
+
+    return jsonify({"status": "ok"})
+
+
+@app.route("/upload-avatar", methods=["POST"])
+def upload_avatar():
+    """Upload an avatar image file."""
+    if "username" not in session:
+        return jsonify({"error": "Not logged in"}), 401
+
+    if "avatar" not in request.files:
+        return jsonify({"error": "No file uploaded"}), 400
+
+    file = request.files["avatar"]
+    if file.filename == "":
+        return jsonify({"error": "No file selected"}), 400
+
+    # Validate file type (images only)
+    allowed_extensions = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext not in allowed_extensions:
+        return jsonify({"error": "Only image files are allowed"}), 400
+
+    # Generate unique filename
+    short_id = ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
+    filename = f"avatar_{short_id}{ext}"
+    filepath = os.path.join(UPLOADS_DIR, filename)
+    file.save(filepath)
+
+    # Save to user record
+    users = load_json(USERS_FILE)
+    for user in users:
+        if user["username"].lower() == session["username"].lower():
+            user["avatar"] = {
+                "type": "upload",
+                "value": filename
+            }
+            break
+
+    save_json(USERS_FILE, users)
+
+    return jsonify({"status": "ok", "filename": filename})
+
+
+@app.route("/register-guest", methods=["POST"])
+def register_guest():
+    """Register a guest user — sets a password and marks them as registered."""
+    if "username" not in session:
+        return jsonify({"error": "Not logged in"}), 401
+
+    if session.get("logged_in"):
+        return jsonify({"error": "You are already registered"}), 400
+
+    data = request.json
+    password = data.get("password", "").strip()
+
+    if not password:
+        return jsonify({"error": "Password is required"}), 400
+
+    if len(password) < 4:
+        return jsonify({"error": "Password must be at least 4 characters"}), 400
+
+    username = session["username"]
+
+    # Check if already registered
+    users = load_json(USERS_FILE)
+    for user in users:
+        if user["username"].lower() == username.lower():
+            return jsonify({"error": "This username is already registered"}), 400
+
+    # Hash and save
+    hashed = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
+    users.append({
+        "username": username,
+        "password": hashed.decode("utf-8")
+    })
+    save_json(USERS_FILE, users)
+
+    # Mark session as logged in
+    session["logged_in"] = True
 
     return jsonify({"status": "ok"})
 

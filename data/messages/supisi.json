@@ -4,5 +4,12 @@
     "message": "HI",
     "timestamp": "2026-04-17 21:17:55",
     "type": "text"
+  },
+  {
+    "username": "adil",
+    "message": "",
+    "timestamp": "2026-04-17 23:17:38",
+    "type": "image",
+    "image": "Candela_sni4v8.webp"
   }
 ]

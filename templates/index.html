@@ -162,12 +162,8 @@
                     errorDiv.style.display = "block";
                     successDiv.style.display = "none";
                 } else {
-                    successDiv.textContent = "Account created! Redirecting...";
-                    successDiv.style.display = "block";
-                    errorDiv.style.display = "none";
-                    setTimeout(() => {
-                        window.location.href = "/chat/general";
-                    }, 1000);
+                    // Redirect immediately to general room after registration
+                    window.location.href = "/chat/general";
                 }
             });
         });
