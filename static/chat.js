@@ -27,9 +27,19 @@ function pollMessages() {
         .then(messages => {
             // Re-render if messsage list is new or count changed
             if (currentMessages === null || messages.length !== currentMessages.length) {
+                const isInitial = (currentMessages === null);
                 currentMessages = messages;
                 renderMessages(messages);
-                scrollToBottom();
+                
+                // If initial load, scroll immediately and also after a short delay 
+                // to account for layout shifts
+                if (isInitial) {
+                    scrollToBottom();
+                    setTimeout(scrollToBottom, 100);
+                    setTimeout(scrollToBottom, 500);
+                } else {
+                    scrollToBottom();
+                }
             }
         })
         .catch(err => console.error("Error polling messages:", err));
@@ -127,12 +137,18 @@ function renderMessages(messages) {
         // Show image or file if attached
         if (msg.image) {
             const isImg = /\.(jpg|jpeg|png|gif|webp)$/i.test(msg.image);
+            const isPdf = /\.pdf$/i.test(msg.image);
             if (isImg) {
-                html += `    <img class="message-attachment message-image" src="/static/uploads/${msg.image}" alt="attachment" onclick="openLightbox(this.src)">`;
+                html += `    <img class="message-attachment message-image" src="/static/uploads/${msg.image}" alt="attachment" onclick="openLightbox(this.src)" onload="scrollToBottom()">`;
+            } else if (isPdf) {
+                html += `    <div class="message-attachment message-file message-pdf" onclick="window.open('/static/uploads/${msg.image}', '_blank')">`;
+                html += `       <i class="bi bi-file-earmark-pdf-fill me-2"></i>`;
+                html += `       <span>${escapeHtml(msg.image)}</span>`;
+                html += `    </div>`;
             } else {
                 html += `    <div class="message-attachment message-file" onclick="window.open('/static/uploads/${msg.image}', '_blank')">`;
                 html += `       <i class="bi bi-file-earmark-arrow-down me-2"></i>`;
-                html += `       <span>${escapeHtml(msg.image.split('_').slice(2).join('_'))}</span>`;
+                html += `       <span>${escapeHtml(msg.image)}</span>`;
                 html += `    </div>`;
             }
         }
@@ -292,22 +308,38 @@ function handleFileSelect(event) {
 
     selectedFile = file;
 
+    const previewDiv = document.getElementById("image-preview");
+    const previewImg = document.getElementById("preview-img");
+    const pdfPreview = document.getElementById("pdf-preview-info");
+
+    // Reset both preview types
+    previewImg.style.display = "none";
+    if (pdfPreview) pdfPreview.style.display = "none";
+
     // Show preview if image
     const isImg = file.type.startsWith("image/");
+    const isPdf = file.type === "application/pdf";
+
     if (isImg) {
         const reader = new FileReader();
         reader.onload = function(e) {
-            const previewDiv = document.getElementById("image-preview");
-            const previewImg = document.getElementById("preview-img");
             previewImg.src = e.target.result;
+            previewImg.style.display = "block";
             previewDiv.style.display = "inline-block";
         };
         reader.readAsDataURL(file);
+    } else if (isPdf) {
+        // Show PDF icon + filename
+        previewImg.style.display = "none";
+        if (pdfPreview) {
+            pdfPreview.querySelector(".pdf-preview-name").textContent = file.name;
+            pdfPreview.style.display = "flex";
+        }
+        previewDiv.style.display = "inline-block";
     } else {
-        // Just show filename for non-images
-        const previewDiv = document.getElementById("image-preview");
-        const previewImg = document.getElementById("preview-img");
-        previewImg.src = "https://cdn-icons-png.flaticon.com/512/2991/2991108.png"; // Placeholder file icon
+        // Fallback for other file types
+        previewImg.src = "";
+        previewImg.style.display = "none";
         previewDiv.style.display = "inline-block";
     }
 }
@@ -319,6 +351,9 @@ function clearFilePreview() {
     selectedFile = null;
     document.getElementById("image-preview").style.display = "none";
     document.getElementById("preview-img").src = "";
+    document.getElementById("preview-img").style.display = "none";
+    const pdfPreview = document.getElementById("pdf-preview-info");
+    if (pdfPreview) pdfPreview.style.display = "none";
     document.getElementById("file-upload").value = "";
 }
 
@@ -417,7 +452,15 @@ function unlockRoom() {
  */
 function scrollToBottom() {
     const feed = document.getElementById("messages-feed");
+    if (!feed) return;
+    
+    // Force immediate scroll
     feed.scrollTop = feed.scrollHeight;
+    
+    // Use requestAnimationFrame for extra reliability during layout cycles
+    window.requestAnimationFrame(() => {
+        feed.scrollTop = feed.scrollHeight;
+    });
 }
 
 /**
@@ -458,6 +501,18 @@ document.getElementById("image-preview").addEventListener("click", sendMessage);
 
 // Create room button
 document.getElementById("create-room-btn").addEventListener("click", createRoom);
+
+/**
+ * MutationObserver to ensure we scroll when the DOM changes
+ */
+const scrollObserver = new MutationObserver(() => {
+    scrollToBottom();
+});
+
+const messagesFeed = document.getElementById("messages-feed");
+if (messagesFeed) {
+    scrollObserver.observe(messagesFeed, { childList: true, subtree: true });
+}
 
 // Modal Controls
 const createModal = document.getElementById("create-modal");

@@ -6,6 +6,8 @@ No registration required to chat, but optional account creation to reserve a use
 
 import os
 import json
+import string
+import random
 from datetime import datetime, timedelta
 from flask import Flask, render_template, request, redirect, session, jsonify, url_for
 from flask_session import Session
@@ -216,10 +218,13 @@ def send():
         "type": "text"
     }
 
-    # If there's an image attachment
+    # If there's a file attachment (image or PDF)
     if image:
         msg["image"] = image
-        msg["type"] = "image"
+        if image.lower().endswith(".pdf"):
+            msg["type"] = "pdf"
+        else:
+            msg["type"] = "image"
 
     # Load existing messages and append
     messages_file = os.path.join(MESSAGES_DIR, f"{room}.json")
@@ -389,7 +394,7 @@ def heartbeat():
 
 @app.route("/upload", methods=["POST"])
 def upload():
-    """Upload an image attachment."""
+    """Upload an image or PDF attachment."""
     if "username" not in session:
         return jsonify({"error": "Not logged in"}), 401
 
@@ -398,15 +403,21 @@ def upload():
         return jsonify({"error": "Room is secure and locked"}), 403
 
     if "image" not in request.files:
-        return jsonify({"error": "No image uploaded"}), 400
+        return jsonify({"error": "No file uploaded"}), 400
 
     file = request.files["image"]
     if file.filename == "":
         return jsonify({"error": "No file selected"}), 400
 
-    # Generate unique filename with Candela prefix
-    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    filename = f"Candela_{timestamp}_{file.filename}"
+    # Validate file type (images + PDF)
+    allowed_extensions = {".jpg", ".jpeg", ".png", ".gif", ".webp", ".pdf"}
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext not in allowed_extensions:
+        return jsonify({"error": "File type not allowed"}), 400
+
+    # Generate short unique filename: Candela_<6 random chars>.<ext>
+    short_id = ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
+    filename = f"Candela_{short_id}{ext}"
     filepath = os.path.join(UPLOADS_DIR, filename)
     file.save(filepath)
 

@@ -89,14 +89,18 @@
                     <!-- Message Input Bar (Floating Capsule) -->
                     <div class="message-input-bar">
                         <div id="image-preview" class="image-preview" style="display:none;">
-                            <img id="preview-img" src="" alt="preview">
+                            <img id="preview-img" src="" alt="preview" style="display:none;">
+                            <div id="pdf-preview-info" class="pdf-preview-info" style="display:none;">
+                                <i class="bi bi-file-earmark-pdf-fill"></i>
+                                <span class="pdf-preview-name">document.pdf</span>
+                            </div>
                             <button id="remove-image" class="btn-remove-image">✕</button>
                         </div>
                         <div class="input-capsule">
                             <label for="file-upload" class="btn-input-action" title="Attach file">
                                 <i class="bi bi-plus-lg"></i>
                             </label>
-                            <input type="file" id="file-upload" style="display:none;">
+                            <input type="file" id="file-upload" accept="image/*,.pdf" style="display:none;">
                             
                             <input type="text" id="message-input" placeholder="Type a message..." autocomplete="off">
                             

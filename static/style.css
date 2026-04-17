@@ -728,7 +728,7 @@ input, button, select, textarea {
 .message-attachment {
     margin-top: 10px;
     margin-left: 24px; /* Shifted to the right as requested */
-    border-radius: 8px;
+    border-radius: 4px;
     display: block;
     cursor: pointer;
     transition: all 0.2s;
@@ -752,6 +752,11 @@ input, button, select, textarea {
     text-decoration: none;
 }
 
+.message-pdf i {
+    font-size: 20px;
+    color: #e06060;
+}
+
 .message-attachment:hover {
     background: rgba(255, 255, 255, 0.14);
     border-color: rgba(255, 255, 255, 0.3);
@@ -773,7 +778,7 @@ input, button, select, textarea {
     background-color: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 4px; /* Extra small rounded as requested */
-    padding: 4px 16px;
+    padding: 6px 12px; /* Increased vertical, reduced horizontal */
     transition: all 0.3s ease;
 }
 
@@ -784,11 +789,11 @@ input, button, select, textarea {
 
 .input-capsule input[type="text"] {
     flex: 1;
-    padding: 10px 0;
+    padding: 12px 0; /* Increased height */
     background-color: transparent;
     border: none;
     color: #ffffff;
-    font-size: 14px;
+    font-size: 15px; /* Increased size */
 }
 
 .input-capsule input[type="text"]::placeholder {
@@ -825,18 +830,49 @@ input, button, select, textarea {
 
 /* ── Image Preview ─────────────────────────────────────────────────────── */
 .image-preview {
-    margin-top: 8px;
-    margin-left: 18px; /* Adjusted closer to the left as requested */
-    position: relative;
+    position: absolute;
+    bottom: 100%;
+    left: 12px;
+    margin-bottom: 6px;
     display: inline-block;
     cursor: pointer;
+    z-index: 6;
 }
 
 .image-preview img {
-    max-width: 120px;
-    max-height: 80px;
+    max-width: 180px;
+    max-height: 120px;
     border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 6px;
+    border-radius: 4px;
+}
+
+/* PDF Preview in input area */
+.pdf-preview-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 500;
+    max-width: 200px;
+}
+
+.pdf-preview-info i {
+    font-size: 22px;
+    color: #e06060;
+    flex-shrink: 0;
+}
+
+.pdf-preview-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .btn-remove-image {
