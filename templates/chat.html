@@ -4,7 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Candela — {{ room }}</title>
-    <meta name="description" content="Chat in the {{ room }} room on Candela.">
+    <meta name="description" content="Chat in the #{{ room }} room on Candela. A premium, minimalist chat experience.">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/logo.png') }}">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -20,7 +25,10 @@
         <!-- ── Left Sidebar: Room List (3/12) ──────────────────────────────── -->
         <aside class="sidebar sidebar-left">
             <div class="sidebar-logo">
-                <a href="/chat/general" class="logo-text">Candela</a>
+                <a href="/chat/general" class="logo-link">
+                    <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Candela" class="sidebar-logo-img">
+                    <span class="logo-text">Candela</span>
+                </a>
             </div>
 
             <button id="open-create-modal" class="btn-create-room">+ Create Room</button>

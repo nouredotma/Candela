@@ -4,7 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Candela — Join</title>
-    <meta name="description" content="Join the chatroom — pick a username, choose a room, and start chatting.">
+    <meta name="description" content="Join Candela — The modern, minimalist chatroom. Pick a username, choose a room, and start chatting instantly.">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/logo.png') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/logo.png') }}">
+
+    <!-- Meta Tags for Social Media -->
+    <meta property="og:title" content="Candela — Modern Chatroom">
+    <meta property="og:description" content="A premium chat experience with glassmorphism design.">
+    <meta property="og:image" content="{{ url_for('static', filename='img/logo.png', _external=True) }}">
+    <meta property="og:type" content="website">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -16,7 +27,10 @@
     <div class="join-container">
         <!-- Logo -->
         <div class="join-logo">
-            <a href="/chat/general" class="text-decoration-none"><h1>Candela</h1></a>
+            <a href="/chat/general" class="logo-wrapper">
+                <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Candela Logo" class="main-logo">
+                <span class="logo-text">Candela</span>
+            </a>
             <p class="join-subtitle">Join a room and start chatting — no account needed.</p>
         </div>
 

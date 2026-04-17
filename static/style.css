@@ -81,17 +81,26 @@ input, button, select, textarea {
     margin-bottom: 28px;
 }
 
-.join-logo .logo-icon {
-    font-size: 44px;
-    display: block;
-    margin-bottom: 8px;
+.join-logo .logo-wrapper {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    text-decoration: none;
 }
 
-.join-logo h1 {
-    font-size: 26px;
-    font-weight: 700;
+.main-logo {
+    height: 60px;
+    width: auto;
+    filter: drop-shadow(0 4px 10px rgba(0,0,0,0.1));
+}
+
+.join-logo .logo-text {
+    font-size: 29px;
+    font-weight: 650;
     color: #ffffff;
     letter-spacing: 2px;
+    margin: 0;
 }
 
 .join-subtitle {
@@ -318,17 +327,30 @@ input, button, select, textarea {
 .sidebar-logo {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 16px 20px;
+    justify-content: center;
+    padding: 14px 24px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.sidebar-logo .logo-icon {
-    font-size: 20px;
+.sidebar-logo .logo-link {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    text-decoration: none;
+}
+
+.sidebar-logo-img {
+    height: 27px;
+    width: auto;
+    transition: transform 0.2s ease;
+}
+
+.sidebar-logo-img:hover {
+    transform: scale(1.05);
 }
 
 .sidebar-logo .logo-text {
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 700;
     color: #ffffff;
     letter-spacing: 1px;
