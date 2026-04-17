@@ -192,7 +192,6 @@ input, button, select, textarea {
     font-weight: 600;
     color: #ffffff;
     letter-spacing: 0.5px;
-    margin-left: 12px;
 }
 
 .modal-body .form-group label {
@@ -528,12 +527,22 @@ input, button, select, textarea {
     overflow: hidden;
 }
 
+.chat-main-area-container {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    position: relative;
+}
+
 .chat-content-wrapper {
     display: flex;
     flex-direction: column;
     flex: 1;
     min-height: 0;
     width: 100%;
+    overflow: hidden;
 }
 
 .secure-blurred {
@@ -554,22 +563,40 @@ input, button, select, textarea {
 }
 
 .secure-content {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 12px;
-    padding: 36px 40px;
+    background: transparent;
     text-align: center;
     color: white;
     width: 90%;
     max-width: 360px;
 }
 
+.secure-input-xs {
+    padding: 8px 12px !important;
+    font-size: 12px !important;
+}
+
+.btn-chat-primary-xs {
+    padding: 8px 12px !important;
+    font-size: 12px !important;
+    background-color: #ffffff !important;
+    color: #447768 !important;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-chat-primary-xs:hover {
+    background-color: rgba(255, 255, 255, 0.9) !important;
+}
+
 .secure-lock-icon {
-    font-size: 48px;
+    font-size: 40px;
     color: #ffffff;
-    margin-bottom: 8px;
+    margin-bottom: 4px;
     display: block;
 }
 

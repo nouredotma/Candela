@@ -32,7 +32,7 @@
                     <li class="room-item {% if r.name == room %}active{% endif %}">
                         <a href="/chat/{{ r.name }}" class="d-flex justify-content-between align-items-center">
                             <span># {{ r.name }}</span>
-                            {% if r.get('is_secure') %}
+                            {% if r.is_secure is defined and r.is_secure %}
                             <i class="bi bi-lock-fill lock-icon"></i>
                             {% endif %}
                         </a>
@@ -54,24 +54,7 @@
         </aside>
 
         <!-- ── Center: Chat Area (6/12) ────────────────────────────────────── -->
-        <main class="chat-center position-relative">
-            <!-- Secure Room Overlay -->
-            {% if is_secure and not is_unlocked %}
-            <div id="secure-room-overlay" class="secure-room-overlay">
-                <div class="secure-content shadow">
-                    <i class="bi bi-lock-fill secure-lock-icon"></i>
-                    <h3 class="mb-2" style="font-weight: 700;">Secure Room</h3>
-                    <p style="font-size: 13px; opacity: 0.8; margin-bottom: 20px;">Enter the password to interact.</p>
-                    <div class="form-group mb-3 mx-auto" style="max-width: 260px;">
-                        <input type="password" id="room-password-input" placeholder="Password" autocomplete="off" class="text-center w-100">
-                    </div>
-                    <div id="unlock-error" class="form-error" style="display:none; margin-bottom: 15px;"></div>
-                    <button id="unlock-btn" class="btn-chat-primary mt-0 w-100" style="max-width: 260px;">Unlock Room</button>
-                </div>
-            </div>
-            {% endif %}
-
-            <div id="chat-content-wrapper" class="chat-content-wrapper {% if is_secure and not is_unlocked %}secure-blurred{% endif %}">
+        <main class="chat-center">
             <!-- Header -->
             <div class="chat-header">
                 <div class="chat-header-info">
@@ -80,26 +63,44 @@
                 </div>
             </div>
 
-            <!-- Messages Feed -->
-            <div id="messages-feed" class="messages-feed">
-                <!-- Messages will be injected here by JS -->
-            </div>
-
-            <!-- Message Input Bar -->
-            <div class="message-input-bar">
-                <div class="input-row">
-                    <input type="text" id="message-input" placeholder="Type a message..." autocomplete="off">
-                    <label for="image-upload" class="btn-attach" title="Attach image">📎</label>
-                    <input type="file" id="image-upload" accept="image/*" style="display:none;">
-                    <button id="send-btn" class="btn-send">Send</button>
+            <div class="chat-main-area-container position-relative flex-grow-1">
+                <!-- Secure Room Overlay -->
+                {% if is_secure and not is_unlocked %}
+                <div id="secure-room-overlay" class="secure-room-overlay">
+                    <div class="secure-content">
+                        <i class="bi bi-lock-fill secure-lock-icon"></i>
+                        <h3 class="mb-1" style="font-weight: 700; font-size: 18px;">Secure Room</h3>
+                        <p style="font-size: 11px; opacity: 0.7; margin-bottom: 12px;">Enter password to unlock.</p>
+                        <div class="form-group mb-1 mx-auto" style="max-width: 200px;">
+                            <input type="password" id="room-password-input" placeholder="Password" autocomplete="off" class="text-center w-100 secure-input-xs">
+                        </div>
+                        <div id="unlock-error" class="form-error" style="display:none; margin-bottom: 4px; font-size: 11px;"></div>
+                        <button id="unlock-btn" class="btn-chat-primary-xs mt-0 w-100 mx-auto" style="max-width: 200px;">Unlock Room</button>
+                    </div>
                 </div>
-                <div id="image-preview" class="image-preview" style="display:none;">
-                    <img id="preview-img" src="" alt="preview">
-                    <button id="remove-image" class="btn-remove-image">✕</button>
-                </div>
-            </div>
+                {% endif %}
 
-            </div> <!-- /chat-content-wrapper -->
+                <div id="chat-content-wrapper" class="chat-content-wrapper h-100 {% if is_secure and not is_unlocked %}secure-blurred{% endif %}">
+                    <!-- Messages Feed -->
+                    <div id="messages-feed" class="messages-feed">
+                        <!-- Messages will be injected here by JS -->
+                    </div>
+
+                    <!-- Message Input Bar -->
+                    <div class="message-input-bar">
+                        <div class="input-row">
+                            <input type="text" id="message-input" placeholder="Type a message..." autocomplete="off">
+                            <label for="image-upload" class="btn-attach" title="Attach image">📎</label>
+                            <input type="file" id="image-upload" accept="image/*" style="display:none;">
+                            <button id="send-btn" class="btn-send">Send</button>
+                        </div>
+                        <div id="image-preview" class="image-preview" style="display:none;">
+                            <img id="preview-img" src="" alt="preview">
+                            <button id="remove-image" class="btn-remove-image">✕</button>
+                        </div>
+                    </div>
+                </div> <!-- /chat-content-wrapper -->
+            </div>
         </main>
 
         <!-- ── Right Sidebar: Online Users (3/12) ─────────────────────────── -->
@@ -142,10 +143,8 @@
     <script>
         const CURRENT_ROOM = "{{ room }}";
         const CURRENT_USER = "{{ username }}";
-        // @ts-ignore
-        const IS_SECURE = {{ 'true' if is_secure else 'false' }};
-        // @ts-ignore
-        let UNLOCKED = {{ 'true' if is_unlocked else 'false' }};
+        const IS_SECURE = JSON.parse("{{ 'true' if is_secure else 'false' }}");
+        let UNLOCKED = JSON.parse("{{ 'true' if is_unlocked else 'false' }}");
     </script>
     <script src="{{ url_for('static', filename='chat.js') }}"></script>
 
