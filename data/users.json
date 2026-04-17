@@ -17,6 +17,18 @@
   },
   {
     "username": "nine",
-    "password": "$2b$12$s3aEJzTuhIkXOqW5IMhzh.B9UD8zlHrZhVyozRYdksI32yETNUr8S"
+    "password": "$2b$12$s3aEJzTuhIkXOqW5IMhzh.B9UD8zlHrZhVyozRYdksI32yETNUr8S",
+    "avatar": {
+      "type": "dicebear",
+      "value": "adventurer:Aneka"
+    }
+  },
+  {
+    "username": "code",
+    "password": "$2b$12$ad4UsLsXjb20BgyRyRLM/OU68dseZnFmVcj5NyNtlsw3F01RKqhDG",
+    "avatar": {
+      "type": "dicebear",
+      "value": "lorelei:Bella"
+    }
   }
 ]
