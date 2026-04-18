@@ -220,12 +220,12 @@ function renderOnlineUsers(users) {
 }
 
 /**
- * Update the online count in the chat header.
+ * Update the online count in the sidebar header.
  * @param {number} count - Number of online users
  */
 function updateOnlineCount(count) {
     const el = document.getElementById("online-count");
-    el.textContent = count + " online";
+    if (el) el.textContent = count + " online";
 }
 
 

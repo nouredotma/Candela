@@ -72,7 +72,6 @@
             <div class="chat-header">
                 <div class="chat-header-info">
                     <h2># {{ room }}</h2>
-                    <span id="online-count" class="online-count">0 online</span>
                 </div>
                 {% if room_creator == username and room != "general" %}
                 <button id="open-delete-modal" class="btn-delete-room" title="Delete Room">
@@ -146,6 +145,7 @@
                 <div class="chat-header-info">
                     <h2>Online Users</h2>
                 </div>
+                <span id="online-count" class="online-count">0 online</span>
             </div>
             <ul id="online-users-list" class="online-users-list">
                 <!-- Online users injected here by JS -->

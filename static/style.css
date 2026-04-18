@@ -815,6 +815,9 @@ input, button, select, textarea {
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     background-color: transparent;
     border-radius: 4px 4px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .chat-header-info {
@@ -1403,11 +1406,8 @@ input, button, select, textarea {
     border-color: rgba(220, 53, 69, 0.2);
 }
 
-.chat-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
+
+
 
 /* ── Delete Room Modal ─────────────────────────────────────────────────── */
 .modal-danger {
