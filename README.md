@@ -140,6 +140,7 @@ This project is open source and available under the [MIT License](LICENSE).
 <p align="center">
   Made with ❤️ by <strong>Noureddine</strong>
 </p>
+
 <p align="center">
   <img src="static/img/logo.png" alt="Candela" width="32">
 </p>
