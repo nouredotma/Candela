@@ -74,9 +74,14 @@
                     <h2># {{ room }}</h2>
                 </div>
                 {% if room_creator == username and room != "general" %}
-                <button id="open-delete-modal" class="btn-delete-room" title="Delete Room">
-                    <i class="bi bi-trash3"></i>
-                </button>
+                <div class="chat-header-actions">
+                    <button id="open-invite-modal" class="btn-header-action" title="Invite Friends">
+                        <i class="bi bi-person-plus"></i>
+                    </button>
+                    <button id="open-delete-modal" class="btn-header-action btn-delete-room" title="Delete Room">
+                        <i class="bi bi-trash3"></i>
+                    </button>
+                </div>
                 {% endif %}
             </div>
 
@@ -174,6 +179,27 @@
                     <input type="password" id="new-room-password" placeholder="Leave blank for public room" autocomplete="off">
                 </div>
                 <button id="create-room-btn" class="btn-chat-primary">Create Room</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Invite Friends Modal ──────────────────────────────────────── -->
+    <div id="invite-modal" class="modal-overlay" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Invite Friends</h3>
+                <button id="close-invite-modal" class="btn-close">✕</button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-3" style="font-size: 13px;">Invite online users to join <strong>#{{ room }}</strong> without a password.</p>
+                
+                <div id="invite-room-error" class="error-banner mb-3" style="display:none;"></div>
+                
+                <div class="online-users-invite-list-container">
+                    <ul id="invite-online-list" class="online-users-list invite-mode">
+                        <!-- Online users will be injected here -->
+                    </ul>
+                </div>
             </div>
         </div>
     </div>

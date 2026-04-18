@@ -57,7 +57,8 @@ def init_data():
             "name": "general", 
             "creator": "System",
             "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "is_secure": False
+            "is_secure": False,
+            "authorized_users": []
         })
         save_json(ROOMS_FILE, rooms)
 
@@ -141,11 +142,45 @@ def is_room_secure(room_name):
 
 
 def check_room_access(room_name):
-    """Returns True if the user has access to the room (not secure, or unlocked in session)."""
+    """Returns True if the user has access to the room (not secure, or unlocked in session, or authorized)."""
     if not is_room_secure(room_name):
         return True
+    
+    # Check session
     unlocked_rooms = session.get("unlocked_rooms", [])
-    return room_name in unlocked_rooms
+    if room_name in unlocked_rooms:
+        return True
+    
+    # Check persistent authorized users in rooms.json
+    rooms = load_json(ROOMS_FILE)
+    room_data = next((r for r in rooms if r["name"] == room_name), None)
+    if room_data and "username" in session:
+        auth_users = room_data.get("authorized_users", [])
+        if session["username"] in auth_users or room_data.get("creator") == session["username"]:
+            return True
+            
+    return False
+
+
+def get_all_online_users():
+    """Return a list of all users online across all rooms."""
+    if not os.path.exists(ONLINE_FILE):
+        return []
+    
+    online = load_json(ONLINE_FILE)
+    now = datetime.now()
+    active_users = set()
+    
+    for room in online:
+        for username, last_seen in online[room].items():
+            try:
+                last_seen_time = datetime.strptime(last_seen, "%Y-%m-%d %H:%M:%S")
+                if (now - last_seen_time) < timedelta(seconds=15):
+                    active_users.add(username)
+            except:
+                continue
+    
+    return list(active_users)
 
 
 def get_user_avatars(usernames):
@@ -402,7 +437,8 @@ def create_room():
         "creator": session.get("username", "Guest"),
         "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "is_secure": bool(password),
-        "password": password if password else None
+        "password": password if password else None,
+        "authorized_users": [session.get("username", "Guest")]
     })
     save_json(ROOMS_FILE, rooms)
     
@@ -823,6 +859,136 @@ def register_guest():
     return jsonify({"status": "ok"})
 
 
+@app.route("/all-online")
+def all_online():
+    """Return all online users across the site for invitations."""
+    if "username" not in session:
+        return jsonify({"error": "Not logged in"}), 401
+        
+    usernames = get_all_online_users()
+    # Filter out self
+    usernames = [u for u in usernames if u != session["username"]]
+    
+    avatar_map = get_user_avatars(usernames)
+    
+    detailed_users = []
+    for u in usernames:
+        detailed_users.append({
+            "username": u,
+            "avatar": avatar_map.get(u)
+        })
+    return jsonify(detailed_users)
+
+
+@app.route("/invite-user", methods=["POST"])
+def invite_user():
+    """Send an invitation to another user."""
+    if "username" not in session:
+        return jsonify({"error": "Not logged in"}), 401
+        
+    data = request.json
+    target_user = data.get("target_user")
+    room_name = data.get("room")
+    
+    if not target_user or not room_name:
+        return jsonify({"error": "Target user and room name required"}), 400
+        
+    # Security check: only creator or authorized can invite
+    rooms = load_json(ROOMS_FILE)
+    room_data = next((r for r in rooms if r["name"] == room_name), None)
+    if not room_data or room_data.get("creator") != session["username"]:
+        return jsonify({"error": "Only the room creator can send invitations"}), 403
+        
+    # Save invitation
+    INVITATIONS_FILE = os.path.join(DATA_DIR, "invitations.json")
+    if os.path.exists(INVITATIONS_FILE):
+        invites = load_json(INVITATIONS_FILE)
+    else:
+        invites = {}
+        
+    if target_user not in invites:
+        invites[target_user] = []
+        
+    # Check if already invited to this room
+    if not any(inv["room"] == room_name for inv in invites[target_user]):
+        invites[target_user].append({
+            "room": room_name,
+            "requester": session["username"],
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        })
+        save_json(INVITATIONS_FILE, invites)
+        
+    return jsonify({"status": "ok"})
+
+
+@app.route("/get-invitations")
+def get_invitations():
+    """Check for pending invitations for the current user."""
+    if "username" not in session:
+        return jsonify([])
+        
+    INVITATIONS_FILE = os.path.join(DATA_DIR, "invitations.json")
+    if not os.path.exists(INVITATIONS_FILE):
+        return jsonify([])
+        
+    invites = load_json(INVITATIONS_FILE)
+    user_invites = invites.get(session["username"], [])
+    
+    # Filter out old invitations (e.g. older than 1 minute)
+    now = datetime.now()
+    valid_invites = []
+    for inv in user_invites:
+        try:
+            inv_time = datetime.strptime(inv["timestamp"], "%Y-%m-%d %H:%M:%S")
+            if (now - inv_time) < timedelta(seconds=60):
+                valid_invites.append(inv)
+        except:
+            continue
+            
+    # Clear valid invitations to prevent re-popups
+    invites[session["username"]] = []
+    save_json(INVITATIONS_FILE, invites)
+    
+    return jsonify(valid_invites)
+
+
+@app.route("/accept-invitation", methods=["POST"])
+def accept_invitation():
+    """Accept an invitation to join a room."""
+    if "username" not in session:
+        return jsonify({"error": "Not logged in"}), 401
+        
+    data = request.json
+    room_name = data.get("room")
+    
+    if not room_name:
+        return jsonify({"error": "Room name required"}), 400
+        
+    # Add to authorized_users in rooms.json
+    rooms = load_json(ROOMS_FILE)
+    room_data = next((r for r in rooms if r["name"] == room_name), None)
+    
+    if not room_data:
+        return jsonify({"error": "Room not found"}), 404
+        
+    if "authorized_users" not in room_data:
+        room_data["authorized_users"] = [room_data.get("creator")]
+        
+    if session["username"] not in room_data["authorized_users"]:
+        room_data["authorized_users"].append(session["username"])
+        save_json(ROOMS_FILE, rooms)
+        
+    # Also unlock in current session
+    unlocked = session.get("unlocked_rooms", [])
+    if room_name not in unlocked:
+        unlocked.append(room_name)
+        session["unlocked_rooms"] = unlocked
+        session.modified = True
+        
+    return jsonify({"status": "ok"})
+
+
 # ── Initialize and Run ───────────────────────────────────────────────────────
-init_data()
-app.run(debug=True)
+if __name__ == "__main__":
+    init_data()
+    app.run(debug=True, host="0.0.0.0", port=5000)

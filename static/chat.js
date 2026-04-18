@@ -96,6 +96,32 @@ sendHeartbeat();
 
 
 // ══════════════════════════════════════════════════════════════════════════
+// Polling — Invitations (every 5 seconds)
+// ══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Check for pending invitations.
+ */
+function pollInvitations() {
+    if (!UNLOCKED) return; // Don't poll if room is locked (blurred)
+
+    fetch("/get-invitations")
+        .then(res => res.json())
+        .then(invites => {
+            if (Array.isArray(invites)) {
+                invites.forEach(inv => {
+                    renderInvitationToast(inv);
+                });
+            }
+        })
+        .catch(err => console.error("Error polling invitations:", err));
+}
+
+// Poll invitations every 5 seconds
+setInterval(pollInvitations, 5000);
+
+
+// ══════════════════════════════════════════════════════════════════════════
 // Rendering — Messages
 // ══════════════════════════════════════════════════════════════════════════
 
@@ -536,6 +562,156 @@ function confirmDeleteRoom() {
     });
 }
 
+/**
+ * Render a special invitation toast with a 10-second timer.
+ */
+function renderInvitationToast(inv) {
+    const container = document.getElementById("toast-container");
+    if (!container) return;
+
+    const toast = document.createElement("div");
+    toast.className = "toast-message invitation";
+    
+    toast.innerHTML = `
+        <div class="invitation-header">
+            <i class="bi bi-envelope-heart-fill"></i>
+            <span>Room Invitation</span>
+        </div>
+        <div class="invitation-body">
+            <strong>${escapeHtml(inv.requester)}</strong> invited you to join <strong>#${escapeHtml(inv.room)}</strong>.
+        </div>
+        <div class="invitation-footer">
+            <button class="btn-decline-invitation" onclick="this.closest('.toast-message').remove()">Decline</button>
+            <button class="btn-accept-invitation">Accept</button>
+        </div>
+        <div class="invitation-timer">
+            <div class="invitation-timer-progress"></div>
+        </div>
+    `;
+
+    container.appendChild(toast);
+
+    // Accept logic
+    toast.querySelector(".btn-accept-invitation").addEventListener("click", () => {
+        acceptInvitation(inv.room);
+        toast.remove();
+    });
+
+    // Auto-remove after 10 seconds
+    const timer = setTimeout(() => {
+        if (toast.parentNode) {
+            toast.style.animation = "toastOut 0.4s forwards";
+            setTimeout(() => toast.remove(), 400);
+        }
+    }, 10000);
+
+    // Stop timer if accepted/declined manually
+    toast.addEventListener("remove", () => clearTimeout(timer));
+}
+
+/**
+ * Handle accepting an invitation.
+ */
+function acceptInvitation(roomName) {
+    fetch("/accept-invitation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ room: roomName })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === "ok") {
+            // Join the room
+            window.location.href = `/chat/${roomName}`;
+        }
+    })
+    .catch(err => console.error("Error accepting invitation:", err));
+}
+
+/**
+ * Open the invite modal and fetch all online users.
+ */
+function openInviteFriendsModal() {
+    const modal = document.getElementById("invite-modal");
+    const list = document.getElementById("invite-online-list");
+    const errorDiv = document.getElementById("invite-room-error");
+    
+    errorDiv.style.display = "none";
+    list.innerHTML = `<li class="text-center py-4"><div class="spinner-border text-primary spinner-border-sm"></div></li>`;
+    modal.style.display = "flex";
+
+    fetch("/all-online")
+        .then(res => res.json())
+        .then(users => {
+            if (users.length === 0) {
+                list.innerHTML = `<li class="text-center py-4 text-muted" style="font-size: 13px;">No other users are online right now.</li>`;
+                return;
+            }
+
+            let html = "";
+            users.forEach(user => {
+                const initial = user.username.charAt(0).toUpperCase();
+                const avatarHtml = getAvatarHtml(user.avatar, initial);
+                
+                html += `
+                    <li class="online-user-item">
+                        <div class="user-main-info">
+                            <div class="online-avatar-container">
+                                <div class="online-user-avatar">${avatarHtml}</div>
+                                <div class="online-user-dot"></div>
+                            </div>
+                            <span class="online-user-name">${escapeHtml(user.username)}</span>
+                        </div>
+                        <button class="btn-invite-user" onclick="sendInvitation('${escapeHtml(user.username)}', this)">Invite</button>
+                    </li>
+                `;
+            });
+            list.innerHTML = html;
+        })
+        .catch(() => {
+            list.innerHTML = `<li class="text-center py-4 text-danger">Error loading users.</li>`;
+        });
+}
+
+function sendInvitation(targetUser, btn) {
+    if (btn.disabled) return;
+
+    fetch("/invite-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ target_user: targetUser, room: CURRENT_ROOM })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.error) {
+            showToast(data.error, "error");
+        } else {
+            showToast(`Invitation sent to ${targetUser}!`);
+            
+            // Start 10s countdown cooldown
+            btn.disabled = true;
+            btn.classList.add("invited");
+            let timeLeft = 10;
+            
+            const countdownInterval = setInterval(() => {
+                btn.textContent = `${timeLeft}s`;
+                timeLeft--;
+                
+                if (timeLeft < 0) {
+                    clearInterval(countdownInterval);
+                    btn.textContent = "Invite";
+                    btn.disabled = false;
+                    btn.classList.remove("invited");
+                }
+            }, 1000);
+            
+            // Initial set
+            btn.textContent = "10s";
+        }
+    })
+    .catch(err => showToast("Error sending invitation", "error"));
+}
+
 
 // ══════════════════════════════════════════════════════════════════════════
 // Utility Functions
@@ -741,6 +917,26 @@ if (openDeleteBtn) {
 if (closeDeleteBtn) closeDeleteBtn.addEventListener("click", () => deleteModal.style.display = "none");
 if (cancelDeleteBtn) cancelDeleteBtn.addEventListener("click", () => deleteModal.style.display = "none");
 if (confirmDeleteBtn) confirmDeleteBtn.addEventListener("click", confirmDeleteRoom);
+
+
+// Invite Friends Event Listeners
+const inviteModal = document.getElementById("invite-modal");
+const openInviteBtn = document.getElementById("open-invite-modal");
+const closeInviteBtn = document.getElementById("close-invite-modal");
+
+if (openInviteBtn) {
+    openInviteBtn.addEventListener("click", openInviteFriendsModal);
+}
+if (closeInviteBtn) {
+    closeInviteBtn.addEventListener("click", () => {
+        inviteModal.style.display = "none";
+    });
+}
+window.addEventListener("click", (e) => {
+    if (e.target === inviteModal) {
+        inviteModal.style.display = "none";
+    }
+});
 
 
 // ══════════════════════════════════════════════════════════════════════════

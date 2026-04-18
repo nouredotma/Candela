@@ -1387,23 +1387,37 @@ input, button, select, textarea {
 }
 
 /* ── Delete Room Button ────────────────────────────────────────────────── */
-.btn-delete-room {
+.btn-header-action {
     background: transparent;
-    color: #dc3545; /* Red by default as requested */
+    color: #447768;
     font-size: 18px;
-    padding: 6px 10px;
+    width: 36px;
+    height: 36px;
     cursor: pointer;
     transition: all 0.2s ease;
-    border-radius: 50px;
-    border: 1px solid transparent;
+    border-radius: 50%;
+    border: none;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-.btn-delete-room:hover {
+.btn-header-action:hover {
+    background: rgba(68, 119, 104, 0.1);
+}
+
+.btn-header-action.btn-delete-room {
+    color: #dc3545;
+}
+
+.btn-header-action.btn-delete-room:hover {
     background: rgba(220, 53, 69, 0.1);
-    border-color: rgba(220, 53, 69, 0.2);
+}
+
+.chat-header-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
 }
 
 
@@ -2186,4 +2200,158 @@ input, button, select, textarea {
 
 .guest-register-prompt .btn-profile-save {
     width: 100%;
+}
+/* ── Invitation Online List ─────────────────────────────────────────── */
+.online-users-list.invite-mode {
+    padding: 0;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.online-users-list.invite-mode .online-user-item {
+    padding: 12px 16px;
+    border-radius: 12px;
+    transition: background 0.2s;
+    background: rgba(68, 119, 104, 0.03);
+    margin-bottom: 8px;
+    justify-content: space-between;
+}
+
+.online-users-list.invite-mode .online-user-item:hover {
+    background: rgba(68, 119, 104, 0.08);
+}
+
+.online-users-list.invite-mode .online-user-name {
+    color: #333;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.online-users-list.invite-mode .user-main-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.btn-invite-user {
+    background: #447768;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 60px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    height: 40px;
+    min-width: 85px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-invite-user:hover {
+    background: #386155;
+}
+
+.btn-invite-user.invited {
+    background: rgba(68, 119, 104, 0.1);
+    color: #447768;
+    border: 1px solid rgba(68, 119, 104, 0.1);
+    cursor: not-allowed;
+}
+
+/* ── Invitation Toast ─────────────────────────────────────────────────── */
+.toast-message.invitation {
+    width: 340px;
+    border-radius: 20px;
+    padding: 20px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+    border: 1px solid rgba(103, 156, 143, 0.3);
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    overflow: hidden; 
+    position: relative;
+    animation: toastIn 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+    color: #333333;
+}
+
+.invitation-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #447768;
+    font-weight: 700;
+}
+
+.invitation-body {
+    font-size: 13px;
+    color: #555555;
+    line-height: 1.4;
+    font-weight: 400;
+}
+
+.invitation-footer {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-accept-invitation {
+    flex: 1;
+    background: #447768;
+    color: #ffffff;
+    border: none;
+    padding: 10px;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-accept-invitation:hover {
+    background: #386155;
+}
+
+.btn-decline-invitation {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.05);
+    color: #666666;
+    border: none;
+    padding: 10px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-decline-invitation:hover {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.invitation-timer {
+    height: 4px;
+    background: rgba(68, 119, 104, 0.1);
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 10;
+}
+
+.invitation-timer-progress {
+    height: 100%;
+    background: #447768;
+    width: 100%;
+    animation: timerProgress 10s linear forwards;
+}
+
+@keyframes timerProgress {
+    from { width: 100%; }
+    to { width: 0%; }
 }
