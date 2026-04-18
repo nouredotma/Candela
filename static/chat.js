@@ -157,7 +157,7 @@ function getAvatarHtml(avatar, username) {
         const parts = avatar.value.split(":");
         return `<img src="https://api.dicebear.com/9.x/${parts[0]}/svg?seed=${parts[1]}" alt="avatar" style="width:100%;height:100%;object-fit:cover;">`;
     } else if (avatar && avatar.type === "upload") {
-        return `<img src="/static/uploads/${avatar.value}" alt="avatar" style="width:100%;height:100%;object-fit:cover;">`;
+        return `<img src="${SUPABASE_URL}/storage/v1/object/public/candela-uploads/${avatar.value}" alt="avatar" style="width:100%;height:100%;object-fit:cover;">`;
     }
     
     // Placeholder logic: Random background color + Candela logo
@@ -212,18 +212,18 @@ function renderMessages(messages) {
             
             let imgSrc = msg.image;
             if (!imgSrc.startsWith("http")) {
-                imgSrc = `/static/uploads/${msg.image}`;
+                imgSrc = `${SUPABASE_URL}/storage/v1/object/public/candela-uploads/${msg.image}`;
             }
 
             if (isImg) {
                 html += `    <img class="message-attachment message-image" src="${imgSrc}" alt="attachment" onclick="openLightbox(this.src)" onload="scrollToBottom()">`;
             } else if (isPdf) {
-                html += `    <div class="message-attachment message-file message-pdf" onclick="window.open('/static/uploads/${msg.image}', '_blank')">`;
+                html += `    <div class="message-attachment message-file message-pdf" onclick="window.open('${SUPABASE_URL}/storage/v1/object/public/candela-uploads/${msg.image}', '_blank')">`;
                 html += `       <i class="bi bi-file-earmark-pdf-fill me-2"></i>`;
                 html += `       <span>${escapeHtml(msg.image)}</span>`;
                 html += `    </div>`;
             } else {
-                html += `    <div class="message-attachment message-file" onclick="window.open('/static/uploads/${msg.image}', '_blank')">`;
+                html += `    <div class="message-attachment message-file" onclick="window.open('${SUPABASE_URL}/storage/v1/object/public/candela-uploads/${msg.image}', '_blank')">`;
                 html += `       <i class="bi bi-file-earmark-arrow-down me-2"></i>`;
                 html += `       <span>${escapeHtml(msg.image)}</span>`;
                 html += `    </div>`;

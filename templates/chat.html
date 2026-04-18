@@ -417,6 +417,7 @@
         let UNLOCKED = JSON.parse("{{ 'true' if is_unlocked else 'false' }}");
         let IS_REGISTERED = JSON.parse("{{ 'true' if is_registered else 'false' }}");
         const USER_AVATAR = JSON.parse('{{ user_avatar | tojson }}');
+        const SUPABASE_URL = "{{ supabase_url }}";
     </script>
     <script src="{{ url_for('static', filename='emojis.js') }}"></script>
     <script src="{{ url_for('static', filename='chat.js') }}"></script>

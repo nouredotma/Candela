@@ -211,7 +211,7 @@ def index():
     if "username" in session:
         return redirect("/chat/general")
     rooms = get_sanitized_rooms()
-    return render_template("index.html", rooms=rooms)
+    return render_template("index.html", rooms=rooms, supabase_url=SUPABASE_URL)
 
 
 @app.route("/join", methods=["POST"])
@@ -294,7 +294,8 @@ def chat(room):
                            is_unlocked=is_unlocked,
                            room_creator=room_creator,
                            is_registered=is_registered,
-                           user_avatar=user_avatar)
+                           user_avatar=user_avatar,
+                           supabase_url=SUPABASE_URL)
 
 
 @app.route("/send", methods=["POST"])
@@ -553,7 +554,20 @@ def upload():
     short_id = ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
     filename = f"Candela_{short_id}{ext}"
     filepath = os.path.join(UPLOADS_DIR, filename)
-    file.save(filepath)
+
+    # Save locally first, then upload to Supabase, then delete local file
+    try:
+        file.save(filepath)
+        with open(filepath, 'rb') as f:
+            supabase.storage.from_("candela-uploads").upload(
+                path=filename,
+                file=filepath,
+                file_options={"content-type": file.mimetype}
+            )
+        os.remove(filepath)
+    except Exception as e:
+        print("Upload Error:", e)
+        return jsonify({"error": "Failed to upload to cloud storage"}), 500
 
     return jsonify({"status": "ok", "filename": filename})
 
@@ -800,7 +814,20 @@ def upload_avatar():
     short_id = ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
     filename = f"avatar_{short_id}{ext}"
     filepath = os.path.join(UPLOADS_DIR, filename)
-    file.save(filepath)
+
+    # Save locally first, then upload to Supabase, then delete
+    try:
+        file.save(filepath)
+        with open(filepath, 'rb') as f:
+            supabase.storage.from_("candela-uploads").upload(
+                path=filename,
+                file=filepath,
+                file_options={"content-type": file.mimetype}
+            )
+        os.remove(filepath)
+    except Exception as e:
+        print("Upload Avatar Error:", e)
+        return jsonify({"error": "Failed to upload avatar to cloud storage"}), 500
 
     # Save to user record in Supabase
     supabase.table("users") \

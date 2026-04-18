@@ -3,3 +3,4 @@ flask-session
 bcrypt
 supabase
 python-dotenv
+gunicorn
