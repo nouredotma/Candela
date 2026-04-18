@@ -126,16 +126,47 @@ setInterval(pollInvitations, 5000);
 // ══════════════════════════════════════════════════════════════════════════
 
 /**
- * Generate HTML for an avatar (image, dicebear SVG, or initial).
+ * Predefined set of warm, light "code colors" for avatar placeholders.
+ * Each color is unique, lighter, and warmer than the original palette.
  */
-function getAvatarHtml(avatar, initial) {
+const PLACEHOLDER_COLORS = [
+    "#5865F2", "#57F287", "#FEE75C", "#EB459E", "#ED4245",
+    "#99AAB5", "#5865F2", "#57F287", "#FEE75C", "#EB459E",
+    "#ED4245", "#99AAB5", "#5865F2", "#57F287", "#FEE75C",
+    "#EB459E", "#ED4245", "#99AAB5", "#5865F2", "#57F287",
+];
+
+/**
+ * Deterministically pick a color from the palette based on the username.
+ */
+function getAvatarColor(username) {
+    if (!username) return PLACEHOLDER_COLORS[0];
+    let hash = 0;
+    for (let i = 0; i < username.length; i++) {
+        hash = username.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const index = Math.abs(hash) % PLACEHOLDER_COLORS.length;
+    return PLACEHOLDER_COLORS[index];
+}
+
+/**
+ * Generate HTML for an avatar (image, dicebear SVG, or the new logo placeholder).
+ */
+function getAvatarHtml(avatar, username) {
     if (avatar && avatar.type === "dicebear") {
         const parts = avatar.value.split(":");
         return `<img src="https://api.dicebear.com/9.x/${parts[0]}/svg?seed=${parts[1]}" alt="avatar" style="width:100%;height:100%;object-fit:cover;">`;
     } else if (avatar && avatar.type === "upload") {
         return `<img src="/static/uploads/${avatar.value}" alt="avatar" style="width:100%;height:100%;object-fit:cover;">`;
     }
-    return initial.toUpperCase();
+    
+    // Placeholder logic: Random background color + Candela logo
+    const bgColor = getAvatarColor(username);
+    return `
+        <div class="avatar-placeholder" style="background-color: ${bgColor}">
+            <img src="/static/img/avatar.png" class="placeholder-logo" alt="Candela">
+        </div>
+    `;
 }
 
 /**
@@ -159,7 +190,7 @@ function renderMessages(messages) {
         const msg = messages[i];
         const isOwn = msg.username === CURRENT_USER;
         const initial = msg.username.charAt(0).toUpperCase();
-        const avatarHtml = getAvatarHtml(msg.user_avatar, initial);
+        const avatarHtml = getAvatarHtml(msg.user_avatar, msg.username);
 
         html += `<div class="message-item ${isOwn ? 'own' : ''}">`;
         html += `  <div class="message-avatar">${avatarHtml}</div>`;
@@ -231,7 +262,7 @@ function renderOnlineUsers(users) {
     for (let i = 0; i < users.length; i++) {
         const user = users[i];
         const initial = user.username.charAt(0).toUpperCase();
-        const avatarHtml = getAvatarHtml(user.avatar, initial);
+        const avatarHtml = getAvatarHtml(user.avatar, user.username);
 
         html += `<li class="online-user-item">`;
         html += `  <div class="online-avatar-container">`;
@@ -651,7 +682,7 @@ function openInviteFriendsModal() {
             let html = "";
             users.forEach(user => {
                 const initial = user.username.charAt(0).toUpperCase();
-                const avatarHtml = getAvatarHtml(user.avatar, initial);
+                const avatarHtml = getAvatarHtml(user.avatar, user.username);
                 
                 html += `
                     <li class="online-user-item">
@@ -1120,16 +1151,7 @@ function initProfileAvatar() {
     const avatarDisplay = document.getElementById("profile-avatar-display");
     if (!avatarDisplay) return;
 
-    if (USER_AVATAR && USER_AVATAR.type === "dicebear") {
-        const parts = USER_AVATAR.value.split(":");
-        const style = parts[0];
-        const seed = parts[1];
-        avatarDisplay.innerHTML = `<img src="https://api.dicebear.com/9.x/${style}/svg?seed=${seed}" alt="avatar">`;
-    } else if (USER_AVATAR && USER_AVATAR.type === "upload") {
-        avatarDisplay.innerHTML = `<img src="/static/uploads/${USER_AVATAR.value}" alt="avatar">`;
-    } else {
-        avatarDisplay.textContent = CURRENT_USER.charAt(0).toUpperCase();
-    }
+    avatarDisplay.innerHTML = getAvatarHtml(USER_AVATAR, CURRENT_USER);
 }
 
 /**
@@ -1238,15 +1260,8 @@ function updateSidebarAvatar(type, value) {
     const sidebarAvatar = document.querySelector(".sidebar-footer .user-avatar");
     if (!sidebarAvatar) return;
 
-    if (type === "dicebear") {
-        const parts = value.split(":");
-        sidebarAvatar.innerHTML = `<img src="https://api.dicebear.com/9.x/${parts[0]}/svg?seed=${parts[1]}" alt="avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
-    } else if (type === "upload") {
-        sidebarAvatar.innerHTML = `<img src="/static/uploads/${value}" alt="avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
-    } else {
-        sidebarAvatar.textContent = CURRENT_USER.charAt(0).toUpperCase();
-        sidebarAvatar.innerHTML = CURRENT_USER.charAt(0).toUpperCase();
-    }
+    const avatarObj = (type && value) ? { type, value } : null;
+    sidebarAvatar.innerHTML = getAvatarHtml(avatarObj, CURRENT_USER);
 }
 
 // ── Profile Modal: Username Edit Toggle ───────────────────────────────────
@@ -1557,8 +1572,9 @@ if (btnGuestRegister) {
 
 // ── Initialize sidebar avatar on page load ───────────────────────────────
 
-if (USER_AVATAR && USER_AVATAR.type === "dicebear") {
-    updateSidebarAvatar("dicebear", USER_AVATAR.value);
-} else if (USER_AVATAR && USER_AVATAR.type === "upload") {
-    updateSidebarAvatar("upload", USER_AVATAR.value);
+if (USER_AVATAR) {
+    updateSidebarAvatar(USER_AVATAR.type, USER_AVATAR.value);
+} else {
+    // Fallback to placeholder logic for current user
+    updateSidebarAvatar(null, null);
 }

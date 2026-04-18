@@ -51,7 +51,11 @@
 
             <div class="sidebar-footer">
                 <div class="user-profile" id="profile-trigger">
-                    <div class="user-avatar">{{ username[0] | upper }}</div>
+                    <div class="user-avatar" id="sidebar-avatar-target">
+                        <div class="avatar-placeholder">
+                            <img src="{{ url_for('static', filename='img/avatar.png') }}" class="placeholder-logo" alt="Candela">
+                        </div>
+                    </div>
                     <div class="user-info-text">
                         <span class="user-badge">{{ username }}</span>
                         <span class="user-status-subtitle" id="user-status-subtitle">
@@ -246,7 +250,9 @@
                     <div class="profile-card-col">
                         <div class="profile-card-inner">
                             <div id="profile-avatar-display" class="profile-avatar-large">
-                                {{ username[0] | upper }}
+                                <div class="avatar-placeholder">
+                                    <img src="{{ url_for('static', filename='img/avatar.png') }}" class="placeholder-logo" alt="Candela">
+                                </div>
                             </div>
                             
                             <div class="profile-identity-info">
