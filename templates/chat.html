@@ -109,8 +109,17 @@
 
                 <div id="chat-content-wrapper" class="chat-content-wrapper h-100 {% if is_secure and not is_unlocked %}secure-blurred{% endif %}">
                     <!-- Messages Feed -->
-                    <div id="messages-feed" class="messages-feed">
+                    <div id="messages-feed" class="messages-feed content-fadein">
                         <!-- Messages will be injected here by JS -->
+                    </div>
+
+                    <!-- Skeleton: Messages -->
+                    <div id="skeleton-messages" class="skeleton-container" style="position:absolute;top:0;left:0;right:0;bottom:60px;overflow:hidden;padding:16px 12px;">
+                        <div class="skeleton-message"><div class="skeleton-bone skeleton-avatar"></div><div class="skeleton-msg-content"><div class="skeleton-msg-header"><div class="skeleton-bone skeleton-username"></div><div class="skeleton-bone skeleton-timestamp"></div></div><div class="skeleton-bone skeleton-text-line" style="width:85%"></div><div class="skeleton-bone skeleton-text-line" style="width:60%"></div></div></div>
+                        <div class="skeleton-message"><div class="skeleton-bone skeleton-avatar"></div><div class="skeleton-msg-content"><div class="skeleton-msg-header"><div class="skeleton-bone skeleton-username" style="width:70px"></div><div class="skeleton-bone skeleton-timestamp"></div></div><div class="skeleton-bone skeleton-text-line" style="width:75%"></div></div></div>
+                        <div class="skeleton-message"><div class="skeleton-bone skeleton-avatar"></div><div class="skeleton-msg-content"><div class="skeleton-msg-header"><div class="skeleton-bone skeleton-username" style="width:110px"></div><div class="skeleton-bone skeleton-timestamp"></div></div><div class="skeleton-bone skeleton-text-line" style="width:90%"></div><div class="skeleton-bone skeleton-text-line" style="width:45%"></div></div></div>
+                        <div class="skeleton-message"><div class="skeleton-bone skeleton-avatar"></div><div class="skeleton-msg-content"><div class="skeleton-msg-header"><div class="skeleton-bone skeleton-username" style="width:80px"></div><div class="skeleton-bone skeleton-timestamp"></div></div><div class="skeleton-bone skeleton-text-line" style="width:65%"></div></div></div>
+                        <div class="skeleton-message"><div class="skeleton-bone skeleton-avatar"></div><div class="skeleton-msg-content"><div class="skeleton-msg-header"><div class="skeleton-bone skeleton-username"></div><div class="skeleton-bone skeleton-timestamp"></div></div><div class="skeleton-bone skeleton-text-line" style="width:80%"></div><div class="skeleton-bone skeleton-text-line" style="width:50%"></div></div></div>
                     </div>
 
                     <!-- Message Input Bar (Floating Capsule) -->
@@ -156,9 +165,19 @@
                 </div>
                 <span id="online-count" class="online-count">0 online</span>
             </div>
-            <ul id="online-users-list" class="online-users-list">
-                <!-- Online users injected here by JS -->
-            </ul>
+            <div style="flex:1;position:relative;overflow:hidden;min-height:0;">
+                <!-- Skeleton: Online Users -->
+                <div id="skeleton-online-users" class="skeleton-container" style="position:absolute;top:0;left:0;right:0;padding:4px 0;z-index:2;">
+                    <div class="skeleton-user-item"><div class="skeleton-bone skeleton-user-avatar"></div><div class="skeleton-bone skeleton-user-name" style="width:85px"></div></div>
+                    <div class="skeleton-user-item"><div class="skeleton-bone skeleton-user-avatar"></div><div class="skeleton-bone skeleton-user-name" style="width:65px"></div></div>
+                    <div class="skeleton-user-item"><div class="skeleton-bone skeleton-user-avatar"></div><div class="skeleton-bone skeleton-user-name" style="width:100px"></div></div>
+                    <div class="skeleton-user-item"><div class="skeleton-bone skeleton-user-avatar"></div><div class="skeleton-bone skeleton-user-name" style="width:75px"></div></div>
+                </div>
+
+                <ul id="online-users-list" class="online-users-list content-fadein">
+                    <!-- Online users injected here by JS -->
+                </ul>
+            </div>
         </aside>
 
     </div>

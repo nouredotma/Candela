@@ -2361,3 +2361,116 @@ input, button, select, textarea {
     from { width: 100%; }
     to { width: 0%; }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   SKELETON LOADING
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Skeleton shimmer animation */
+@keyframes skeletonShimmer {
+    0% { background-position: -400px 0; }
+    100% { background-position: 400px 0; }
+}
+
+.skeleton-bone {
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.06) 25%,
+        rgba(255, 255, 255, 0.12) 50%,
+        rgba(255, 255, 255, 0.06) 75%
+    );
+    background-size: 800px 100%;
+    animation: skeletonShimmer 1.8s ease-in-out infinite;
+    border-radius: 4px;
+}
+
+/* ── Skeleton Message Item ─────────────────────────────────────────────── */
+.skeleton-message {
+    display: flex;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.skeleton-avatar {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    border-radius: 50%;
+    margin-top: 4px;
+}
+
+.skeleton-msg-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.skeleton-msg-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.skeleton-username {
+    width: 90px;
+    height: 14px;
+    border-radius: 8px;
+}
+
+.skeleton-timestamp {
+    width: 55px;
+    height: 10px;
+    border-radius: 8px;
+}
+
+.skeleton-text-line {
+    height: 12px;
+    border-radius: 8px;
+}
+
+.skeleton-text-line:nth-child(1) { width: 85%; }
+.skeleton-text-line:nth-child(2) { width: 60%; }
+
+/* ── Skeleton Online User Item ─────────────────────────────────────────── */
+.skeleton-user-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+}
+
+.skeleton-user-avatar {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    border-radius: 50%;
+}
+
+.skeleton-user-name {
+    height: 12px;
+    border-radius: 8px;
+    width: 80px;
+}
+
+/* ── Skeleton Container (Fade-out) ─────────────────────────────────────── */
+.skeleton-container {
+    opacity: 1;
+    transition: opacity 0.4s ease;
+}
+
+.skeleton-container.fade-out {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* ── Real Content (Fade-in) ────────────────────────────────────────────── */
+.content-fadein {
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.content-fadein.visible {
+    opacity: 1;
+}

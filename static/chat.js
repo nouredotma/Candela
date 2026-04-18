@@ -11,6 +11,24 @@
 
 let currentMessages = null;     // Cache of messages to detect new ones
 let selectedFile = null;        // Currently selected file for attachment
+let messagesSkeletonDismissed = false;  // Track if messages skeleton was dismissed
+let usersSkeletonDismissed = false;     // Track if users skeleton was dismissed
+
+/**
+ * Dismiss a skeleton container and reveal the real content element.
+ * @param {string} skeletonId - ID of the skeleton container
+ * @param {HTMLElement} contentEl - The real content element to reveal
+ */
+function dismissSkeleton(skeletonId, contentEl) {
+    const skeleton = document.getElementById(skeletonId);
+    if (skeleton) {
+        skeleton.classList.add("fade-out");
+        setTimeout(() => skeleton.remove(), 450);
+    }
+    if (contentEl) {
+        contentEl.classList.add("visible");
+    }
+}
 
 
 // ══════════════════════════════════════════════════════════════════════════
@@ -31,6 +49,13 @@ function pollMessages() {
                 currentMessages = messages;
                 renderMessages(messages);
                 
+                // Dismiss skeleton on first load
+                if (isInitial && !messagesSkeletonDismissed) {
+                    messagesSkeletonDismissed = true;
+                    const feed = document.getElementById("messages-feed");
+                    dismissSkeleton("skeleton-messages", feed);
+                }
+
                 // If initial load, scroll immediately and also after a short delay 
                 // to account for layout shifts
                 if (isInitial) {
@@ -63,6 +88,13 @@ function pollOnlineUsers() {
         .then(users => {
             renderOnlineUsers(users);
             updateOnlineCount(users.length);
+
+            // Dismiss skeleton on first load
+            if (!usersSkeletonDismissed) {
+                usersSkeletonDismissed = true;
+                const list = document.getElementById("online-users-list");
+                dismissSkeleton("skeleton-online-users", list);
+            }
         })
         .catch(err => console.error("Error polling online users:", err));
 }

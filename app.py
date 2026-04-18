@@ -374,8 +374,8 @@ def rooms():
 
 @app.route("/online/<room>")
 def online(room):
-    """Return list of online users in room as JSON."""
-    usernames = get_online_users(room)
+    """Return list of all online users across all rooms as JSON."""
+    usernames = get_all_online_users()
     avatar_map = get_user_avatars(usernames)
 
     detailed_users = []
