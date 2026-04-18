@@ -197,7 +197,7 @@ function renderMessages(messages) {
         html += `  <div class="message-content">`;
         html += `    <div class="message-header">`;
         html += `      <span class="message-username">${escapeHtml(msg.username)}</span>`;
-        html += `      <span class="message-timestamp">${msg.timestamp}</span>`;
+        html += `      <span class="message-timestamp">${formatTimestamp(msg.timestamp)}</span>`;
         html += `    </div>`;
 
         if (msg.message) {
@@ -762,6 +762,37 @@ function scrollToBottom() {
     window.requestAnimationFrame(() => {
         feed.scrollTop = feed.scrollHeight;
     });
+}
+
+/**
+ * Format an ISO 8601 timestamp into a readable local time string.
+ * Shows "Today HH:MM", "Yesterday HH:MM", or "YYYY-MM-DD HH:MM".
+ * @param {string} isoString - ISO 8601 timestamp from Supabase
+ * @returns {string} — Formatted timestamp
+ */
+function formatTimestamp(isoString) {
+    if (!isoString) return '';
+    const date = new Date(isoString);
+    if (isNaN(date.getTime())) return isoString; // Fallback if unparseable
+
+    const now = new Date();
+    const h = String(date.getHours()).padStart(2, '0');
+    const mi = String(date.getMinutes()).padStart(2, '0');
+    const timeStr = `${h}:${mi}`;
+
+    // Check if same calendar day
+    const isToday = date.toDateString() === now.toDateString();
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+    const isYesterday = date.toDateString() === yesterday.toDateString();
+
+    if (isToday) return `Today ${timeStr}`;
+    if (isYesterday) return `Yesterday ${timeStr}`;
+
+    const y = date.getFullYear();
+    const mo = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${mo}-${d} ${timeStr}`;
 }
 
 /**

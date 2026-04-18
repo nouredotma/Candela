@@ -2,17 +2,23 @@
 CHATROOM-P — Flask Chatroom Web App
 A real-time chatroom where users can join rooms, chat, and see who's online.
 No registration required to chat, but optional account creation to reserve a username.
+
+Storage: Supabase (PostgreSQL)
 """
 
 import os
-import json
 import string
 import random
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from flask import Flask, render_template, request, redirect, session, jsonify, url_for
 from flask_session import Session
 import re
 import bcrypt
+from dotenv import load_dotenv
+from supabase import create_client, Client
+
+# ── Load environment variables ───────────────────────────────────────────────
+load_dotenv()
 
 # ── Flask App Setup ──────────────────────────────────────────────────────────
 app = Flask(__name__)
@@ -24,85 +30,37 @@ app.config["SESSION_FILE_DIR"] = os.path.join(os.path.dirname(__file__), "flask_
 app.config["SESSION_PERMANENT"] = False
 Session(app)
 
-# ── Paths ────────────────────────────────────────────────────────────────────
+# ── Supabase Client Setup ────────────────────────────────────────────────────
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+
+if not SUPABASE_URL or not SUPABASE_KEY:
+    raise RuntimeError("Missing SUPABASE_URL or SUPABASE_KEY in .env file")
+
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+# ── Paths (only for local file uploads) ──────────────────────────────────────
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = os.path.join(BASE_DIR, "data")
-MESSAGES_DIR = os.path.join(DATA_DIR, "messages")
-ROOMS_FILE = os.path.join(DATA_DIR, "rooms.json")
-USERS_FILE = os.path.join(DATA_DIR, "users.json")
-ONLINE_FILE = os.path.join(DATA_DIR, "online.json")
 UPLOADS_DIR = os.path.join(BASE_DIR, "static", "uploads")
+os.makedirs(UPLOADS_DIR, exist_ok=True)
 
 
 # ── Helper Functions ─────────────────────────────────────────────────────────
 
-def init_data():
-    """Initialize all JSON files and directories if they don't exist."""
-    # Create directories
-    os.makedirs(DATA_DIR, exist_ok=True)
-    os.makedirs(MESSAGES_DIR, exist_ok=True)
-    os.makedirs(UPLOADS_DIR, exist_ok=True)
-
-    # Initialize rooms.json with default "general" room
-    rooms = []
-    if os.path.exists(ROOMS_FILE):
-        try:
-            rooms = load_json(ROOMS_FILE)
-        except:
-            rooms = []
-    
-    # Ensure "general" exists
-    if not any(r["name"] == "general" for r in rooms):
-        rooms.insert(0, {
-            "name": "general", 
-            "creator": "System",
-            "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "is_secure": False,
-            "authorized_users": []
-        })
-        save_json(ROOMS_FILE, rooms)
-
-    # Initialize users.json
-    if not os.path.exists(USERS_FILE):
-        save_json(USERS_FILE, [])
-
-    # Initialize online.json
-    if not os.path.exists(ONLINE_FILE):
-        save_json(ONLINE_FILE, {})
-
-    # Initialize messages file for "general" room
-    general_messages = os.path.join(MESSAGES_DIR, "general.json")
-    if not os.path.exists(general_messages):
-        save_json(general_messages, [])
-
-
-def load_json(filepath):
-    """Load and return data from a JSON file."""
-    with open(filepath, "r", encoding="utf-8") as f:
-        return json.load(f)
-
-
-def save_json(filepath, data):
-    """Save data to a JSON file."""
-    with open(filepath, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
+def utcnow():
+    """Return current UTC time as ISO string for Supabase."""
+    return datetime.now(timezone.utc).isoformat()
 
 
 def get_online_users(room):
     """Return list of users currently online in a room (heartbeat within 15s)."""
-    online = load_json(ONLINE_FILE)
-    if room not in online:
-        return []
-
-    now = datetime.now()
-    active_users = []
-    for username, last_seen in online[room].items():
-        last_seen_time = datetime.strptime(last_seen, "%Y-%m-%d %H:%M:%S")
-        # User is online if heartbeat was within last 15 seconds
-        if (now - last_seen_time) < timedelta(seconds=15):
-            active_users.append(username)
-
-    return active_users
+    cutoff = (datetime.now(timezone.utc) - timedelta(seconds=15)).isoformat()
+    result = supabase.table("online_users") \
+        .select("username") \
+        .eq("room", room) \
+        .gte("last_seen", cutoff) \
+        .execute()
+    return [r["username"] for r in result.data]
 
 
 def is_username_taken_in_room(username, room):
@@ -113,31 +71,29 @@ def is_username_taken_in_room(username, room):
 
 def is_username_registered(username):
     """Check if a username belongs to a registered account."""
-    users = load_json(USERS_FILE)
-    for user in users:
-        if user["username"].lower() == username.lower():
-            return True
-    return False
+    result = supabase.table("users") \
+        .select("username") \
+        .ilike("username", username) \
+        .execute()
+    return len(result.data) > 0
 
 
 def get_sanitized_rooms():
     """Returns all rooms, stripping out passwords to safely send to frontend."""
-    rooms = load_json(ROOMS_FILE)
-    sanitized = []
-    for r in rooms:
-        r_copy = r.copy()
-        if "password" in r_copy:
-            del r_copy["password"]
-        sanitized.append(r_copy)
-    return sanitized
+    result = supabase.table("rooms") \
+        .select("name, creator, created_at, is_secure") \
+        .execute()
+    return result.data
 
 
 def is_room_secure(room_name):
     """Check if a room requires a password."""
-    rooms = load_json(ROOMS_FILE)
-    for r in rooms:
-        if r["name"] == room_name:
-            return r.get("is_secure", False)
+    result = supabase.table("rooms") \
+        .select("is_secure") \
+        .eq("name", room_name) \
+        .execute()
+    if result.data:
+        return result.data[0].get("is_secure", False)
     return False
 
 
@@ -145,97 +101,106 @@ def check_room_access(room_name):
     """Returns True if the user has access to the room (not secure, or unlocked in session, or authorized)."""
     if not is_room_secure(room_name):
         return True
-    
+
     # Check session
     unlocked_rooms = session.get("unlocked_rooms", [])
     if room_name in unlocked_rooms:
         return True
-    
-    # Check persistent authorized users in rooms.json
-    rooms = load_json(ROOMS_FILE)
-    room_data = next((r for r in rooms if r["name"] == room_name), None)
-    if room_data and "username" in session:
-        auth_users = room_data.get("authorized_users", [])
-        if session["username"] in auth_users or room_data.get("creator") == session["username"]:
+
+    # Check persistent authorized users
+    if "username" in session:
+        # Check if user is creator
+        room_result = supabase.table("rooms") \
+            .select("creator") \
+            .eq("name", room_name) \
+            .execute()
+        if room_result.data and room_result.data[0]["creator"] == session["username"]:
             return True
-            
+
+        # Check authorized_users table
+        auth_result = supabase.table("room_authorized_users") \
+            .select("username") \
+            .eq("room_name", room_name) \
+            .eq("username", session["username"]) \
+            .execute()
+        if auth_result.data:
+            return True
+
     return False
 
 
 def get_all_online_users():
     """Return a list of all users online across all rooms."""
-    if not os.path.exists(ONLINE_FILE):
-        return []
-    
-    online = load_json(ONLINE_FILE)
-    now = datetime.now()
-    active_users = set()
-    
-    for room in online:
-        for username, last_seen in online[room].items():
-            try:
-                last_seen_time = datetime.strptime(last_seen, "%Y-%m-%d %H:%M:%S")
-                if (now - last_seen_time) < timedelta(seconds=15):
-                    active_users.add(username)
-            except:
-                continue
-    
-    return list(active_users)
+    cutoff = (datetime.now(timezone.utc) - timedelta(seconds=15)).isoformat()
+    result = supabase.table("online_users") \
+        .select("username") \
+        .gte("last_seen", cutoff) \
+        .execute()
+
+    # Deduplicate (user may be in multiple rooms)
+    return list(set(r["username"] for r in result.data))
 
 
 def get_user_avatars(usernames):
     """Return a mapping of usernames to their avatars."""
-    users = load_json(USERS_FILE)
+    if not usernames:
+        return {}
+
+    result = supabase.table("users") \
+        .select("username, avatar_type, avatar_value") \
+        .in_("username", usernames) \
+        .execute()
+
     avatar_map = {}
-    for username in usernames:
-        user_data = next((u for u in users if u["username"].lower() == username.lower()), None)
-        avatar_map[username] = user_data.get("avatar") if user_data else None
+    # Initialize all requested usernames with None
+    for u in usernames:
+        avatar_map[u] = None
+
+    for row in result.data:
+        if row["avatar_type"] and row["avatar_value"]:
+            avatar_map[row["username"]] = {
+                "type": row["avatar_type"],
+                "value": row["avatar_value"]
+            }
+
     return avatar_map
 
 
 def sync_user_data_update(old_username, new_username):
     """Sync username change across all messages and room creators."""
     # 1. Update Room Creators
-    if os.path.exists(ROOMS_FILE):
-        rooms = load_json(ROOMS_FILE)
-        changed = False
-        for r in rooms:
-            if r.get("creator", "").lower() == old_username.lower():
-                r["creator"] = new_username
-                changed = True
-        if changed:
-            save_json(ROOMS_FILE, rooms)
+    supabase.table("rooms") \
+        .update({"creator": new_username}) \
+        .ilike("creator", old_username) \
+        .execute()
 
-    # 2. Update all message files
-    for filename in os.listdir(MESSAGES_DIR):
-        if filename.endswith(".json"):
-            filepath = os.path.join(MESSAGES_DIR, filename)
-            try:
-                msgs = load_json(filepath)
-                changed_msgs = False
-                for m in msgs:
-                    if m.get("username", "").lower() == old_username.lower():
-                        m["username"] = new_username
-                        changed_msgs = True
-                if changed_msgs:
-                    save_json(filepath, msgs)
-            except:
-                continue
+    # 2. Update all messages
+    supabase.table("messages") \
+        .update({"username": new_username}) \
+        .ilike("username", old_username) \
+        .execute()
 
-    # 3. Update online.json
-    if os.path.exists(ONLINE_FILE):
-        online = load_json(ONLINE_FILE)
-        changed_online = False
-        for room in online:
-            room_users = online[room]
-            # Find matching keys (case-insensitive)
-            matches = [u for u in room_users.keys() if u.lower() == old_username.lower()]
-            for m in matches:
-                timestamp = room_users.pop(m)
-                room_users[new_username] = timestamp
-                changed_online = True
-        if changed_online:
-            save_json(ONLINE_FILE, online)
+    # 3. Update online_users
+    supabase.table("online_users") \
+        .update({"username": new_username}) \
+        .ilike("username", old_username) \
+        .execute()
+
+    # 4. Update room_authorized_users
+    supabase.table("room_authorized_users") \
+        .update({"username": new_username}) \
+        .ilike("username", old_username) \
+        .execute()
+
+    # 5. Update invitations (both requester and target)
+    supabase.table("invitations") \
+        .update({"requester": new_username}) \
+        .ilike("requester", old_username) \
+        .execute()
+    supabase.table("invitations") \
+        .update({"target_user": new_username}) \
+        .ilike("target_user", old_username) \
+        .execute()
 
 
 # ── Routes ───────────────────────────────────────────────────────────────────
@@ -292,14 +257,16 @@ def chat(room):
 
     # Update session room
     session["room"] = room
-    
+
     is_secure = is_room_secure(room)
     is_unlocked = check_room_access(room)
 
     # Find the creator of the room
-    all_rooms = load_json(ROOMS_FILE)
-    room_info = next((r for r in all_rooms if r["name"] == room), None)
-    room_creator = room_info.get("creator") if room_info else None
+    room_result = supabase.table("rooms") \
+        .select("creator") \
+        .eq("name", room) \
+        .execute()
+    room_creator = room_result.data[0]["creator"] if room_result.data else None
 
     # Check if user is registered
     is_registered = session.get("logged_in", False)
@@ -307,16 +274,23 @@ def chat(room):
     # Get avatar info for the user
     user_avatar = None
     if is_registered:
-        users = load_json(USERS_FILE)
-        user_data = next((u for u in users if u["username"].lower() == session["username"].lower()), None)
-        if user_data:
-            user_avatar = user_data.get("avatar", None)
+        user_result = supabase.table("users") \
+            .select("avatar_type, avatar_value") \
+            .ilike("username", session["username"]) \
+            .execute()
+        if user_result.data:
+            row = user_result.data[0]
+            if row["avatar_type"] and row["avatar_value"]:
+                user_avatar = {
+                    "type": row["avatar_type"],
+                    "value": row["avatar_value"]
+                }
 
-    return render_template("chat.html", 
-                           room=room, 
-                           username=session["username"], 
-                           rooms=safe_rooms, 
-                           is_secure=is_secure, 
+    return render_template("chat.html",
+                           room=room,
+                           username=session["username"],
+                           rooms=safe_rooms,
+                           is_secure=is_secure,
                            is_unlocked=is_unlocked,
                            room_creator=room_creator,
                            is_registered=is_registered,
@@ -325,13 +299,13 @@ def chat(room):
 
 @app.route("/send", methods=["POST"])
 def send():
-    """Save a new message to room's JSON file."""
+    """Save a new message to the messages table."""
     if "username" not in session:
         return jsonify({"error": "Not logged in"}), 401
 
     data = request.json
     room = data.get("room", session.get("room", "general"))
-    
+
     if not check_room_access(room):
         return jsonify({"error": "Room is secure and locked"}), 403
 
@@ -341,31 +315,22 @@ def send():
     if not message_text and not image:
         return jsonify({"error": "Message cannot be empty"}), 400
 
-    # Build message object
-    msg = {
+    # Determine message type
+    msg_type = data.get("type", "text")
+    if image:
+        if image.lower().endswith(".pdf"):
+            msg_type = "pdf"
+        elif msg_type != "gif":
+            msg_type = "image"
+
+    # Insert into Supabase
+    supabase.table("messages").insert({
+        "room": room,
         "username": session["username"],
         "message": message_text,
-        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "type": data.get("type", "text")
-    }
-
-    # If there's a file attachment (image or PDF)
-    if image:
-        msg["image"] = image
-        if image.lower().endswith(".pdf"):
-            msg["type"] = "pdf"
-        elif msg["type"] != "gif":
-            msg["type"] = "image"
-
-    # Load existing messages and append
-    messages_file = os.path.join(MESSAGES_DIR, f"{room}.json")
-    if os.path.exists(messages_file):
-        messages = load_json(messages_file)
-    else:
-        messages = []
-
-    messages.append(msg)
-    save_json(messages_file, messages)
+        "type": msg_type,
+        "image": image
+    }).execute()
 
     return jsonify({"status": "ok"})
 
@@ -373,18 +338,30 @@ def send():
 @app.route("/messages/<room>")
 def messages(room):
     """Return all messages for a room as JSON."""
+    result = supabase.table("messages") \
+        .select("*") \
+        .eq("room", room) \
+        .order("created_at", desc=False) \
+        .execute()
 
-    messages_file = os.path.join(MESSAGES_DIR, f"{room}.json")
-    if os.path.exists(messages_file):
-        msgs = load_json(messages_file)
-        # Add avatar info to each message
-        usernames = list(set(m["username"] for m in msgs))
-        avatar_map = get_user_avatars(usernames)
-        for m in msgs:
-            m["user_avatar"] = avatar_map.get(m["username"])
-    else:
-        msgs = []
-    return jsonify(msgs)
+    msgs = result.data
+
+    # Add avatar info to each message
+    usernames = list(set(m["username"] for m in msgs))
+    avatar_map = get_user_avatars(usernames)
+
+    response = []
+    for m in msgs:
+        response.append({
+            "username": m["username"],
+            "message": m["message"],
+            "timestamp": m["created_at"],
+            "type": m["type"],
+            "image": m.get("image"),
+            "user_avatar": avatar_map.get(m["username"])
+        })
+
+    return jsonify(response)
 
 
 @app.route("/rooms")
@@ -397,10 +374,9 @@ def rooms():
 @app.route("/online/<room>")
 def online(room):
     """Return list of online users in room as JSON."""
-
     usernames = get_online_users(room)
     avatar_map = get_user_avatars(usernames)
-    
+
     detailed_users = []
     for u in usernames:
         detailed_users.append({
@@ -424,33 +400,35 @@ def create_room():
     if not re.match(r"^[a-z0-9-_]+$", room_name):
         return jsonify({"error": "Room name can only contain letters, numbers, hyphens, and underscores."}), 400
 
-    # Load existing rooms
-    rooms = load_json(ROOMS_FILE)
-    room_names = [r["name"] for r in rooms]
+    # Check if room already exists
+    existing = supabase.table("rooms") \
+        .select("name") \
+        .eq("name", room_name) \
+        .execute()
 
-    if room_name in room_names:
+    if existing.data:
         return jsonify({"error": "Room already exists"}), 400
 
-    # Add new room
-    rooms.append({
+    # Insert new room
+    supabase.table("rooms").insert({
         "name": room_name,
         "creator": session.get("username", "Guest"),
-        "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "is_secure": bool(password),
-        "password": password if password else None,
-        "authorized_users": [session.get("username", "Guest")]
-    })
-    save_json(ROOMS_FILE, rooms)
-    
-    # Unlock for the creator
+        "password": password if password else None
+    }).execute()
+
+    # Add creator to authorized users
+    creator_username = session.get("username", "Guest")
+    supabase.table("room_authorized_users").insert({
+        "room_name": room_name,
+        "username": creator_username
+    }).execute()
+
+    # Unlock for the creator in session
     if password:
         session_unlocked = session.get("unlocked_rooms", [])
         session_unlocked.append(room_name)
         session["unlocked_rooms"] = session_unlocked
-
-    # Create empty messages file for the room
-    messages_file = os.path.join(MESSAGES_DIR, f"{room_name}.json")
-    save_json(messages_file, [])
 
     return jsonify({"status": "ok", "name": room_name})
 
@@ -466,19 +444,21 @@ def register():
         return jsonify({"error": "Username and password are required"}), 400
 
     # Check if username is already registered
-    users = load_json(USERS_FILE)
-    for user in users:
-        if user["username"].lower() == username.lower():
-            return jsonify({"error": "Username is already registered"}), 400
+    existing = supabase.table("users") \
+        .select("username") \
+        .ilike("username", username) \
+        .execute()
+
+    if existing.data:
+        return jsonify({"error": "Username is already registered"}), 400
 
     # Hash password with bcrypt
     hashed = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
 
-    users.append({
+    supabase.table("users").insert({
         "username": username,
         "password": hashed.decode("utf-8")
-    })
-    save_json(USERS_FILE, users)
+    }).execute()
 
     # Auto-login after registration
     session["username"] = username
@@ -498,18 +478,23 @@ def login():
         return jsonify({"error": "Username and password are required"}), 400
 
     # Find user
-    users = load_json(USERS_FILE)
-    for user in users:
-        if user["username"].lower() == username.lower():
-            # Verify password
-            if bcrypt.checkpw(password.encode("utf-8"), user["password"].encode("utf-8")):
-                session["username"] = user["username"]
-                session["logged_in"] = True
-                return jsonify({"status": "ok"})
-            else:
-                return jsonify({"error": "Incorrect password"}), 401
+    result = supabase.table("users") \
+        .select("username, password") \
+        .ilike("username", username) \
+        .execute()
 
-    return jsonify({"error": "User not found"}), 404
+    if not result.data:
+        return jsonify({"error": "User not found"}), 404
+
+    user = result.data[0]
+
+    # Verify password
+    if bcrypt.checkpw(password.encode("utf-8"), user["password"].encode("utf-8")):
+        session["username"] = user["username"]
+        session["logged_in"] = True
+        return jsonify({"status": "ok"})
+    else:
+        return jsonify({"error": "Incorrect password"}), 401
 
 
 @app.route("/logout")
@@ -527,17 +512,16 @@ def heartbeat():
 
     data = request.json
     room = data.get("room", session.get("room", "general"))
-    
+
     if not check_room_access(room):
         return jsonify({"error": "Room is secure and locked"}), 403
 
-    online = load_json(ONLINE_FILE)
-
-    if room not in online:
-        online[room] = {}
-
-    online[room][session["username"]] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    save_json(ONLINE_FILE, online)
+    # Upsert: update last_seen if exists, insert if not
+    supabase.table("online_users").upsert({
+        "room": room,
+        "username": session["username"],
+        "last_seen": utcnow()
+    }, on_conflict="room,username").execute()
 
     return jsonify({"status": "ok"})
 
@@ -584,11 +568,15 @@ def unlock_room():
     room_name = data.get("room", "").strip()
     password = data.get("password", "").strip()
 
-    rooms = load_json(ROOMS_FILE)
-    room_data = next((r for r in rooms if r["name"] == room_name), None)
+    result = supabase.table("rooms") \
+        .select("name, is_secure, password") \
+        .eq("name", room_name) \
+        .execute()
 
-    if not room_data:
+    if not result.data:
         return jsonify({"error": "Room not found"}), 404
+
+    room_data = result.data[0]
 
     if not room_data.get("is_secure"):
         return jsonify({"status": "ok"})
@@ -616,30 +604,29 @@ def delete_room():
     if room_name == "general":
         return jsonify({"error": "Cannot delete the general room"}), 403
 
-    rooms = load_json(ROOMS_FILE)
-    room_idx = next((i for i, r in enumerate(rooms) if r["name"] == room_name), -1)
+    # Get room data
+    result = supabase.table("rooms") \
+        .select("name, creator") \
+        .eq("name", room_name) \
+        .execute()
 
-    if room_idx == -1:
+    if not result.data:
         return jsonify({"error": "Room not found"}), 404
 
+    room_data = result.data[0]
+
     # Authorization check
-    if rooms[room_idx].get("creator") != session["username"]:
+    if room_data["creator"] != session["username"]:
         return jsonify({"error": "Only the creator can delete this room"}), 403
 
-    # Delete room entry
-    del rooms[room_idx]
-    save_json(ROOMS_FILE, rooms)
+    # Delete room (room_authorized_users will CASCADE delete)
+    supabase.table("rooms").delete().eq("name", room_name).execute()
 
-    # Delete messages file
-    messages_file = os.path.join(MESSAGES_DIR, f"{room_name}.json")
-    if os.path.exists(messages_file):
-        os.remove(messages_file)
+    # Delete messages for this room
+    supabase.table("messages").delete().eq("room", room_name).execute()
 
     # Clean up online users for this room
-    online = load_json(ONLINE_FILE)
-    if room_name in online:
-        del online[room_name]
-        save_json(ONLINE_FILE, online)
+    supabase.table("online_users").delete().eq("room", room_name).execute()
 
     return jsonify({"status": "ok"})
 
@@ -654,10 +641,17 @@ def profile_info():
     avatar = None
 
     if is_registered:
-        users = load_json(USERS_FILE)
-        user_data = next((u for u in users if u["username"].lower() == session["username"].lower()), None)
-        if user_data:
-            avatar = user_data.get("avatar", None)
+        result = supabase.table("users") \
+            .select("avatar_type, avatar_value") \
+            .ilike("username", session["username"]) \
+            .execute()
+        if result.data:
+            row = result.data[0]
+            if row["avatar_type"] and row["avatar_value"]:
+                avatar = {
+                    "type": row["avatar_type"],
+                    "value": row["avatar_value"]
+                }
 
     return jsonify({
         "username": session["username"],
@@ -690,20 +684,21 @@ def update_username():
     old_username = session["username"]
 
     # Check if new username is already taken (by another user)
-    users = load_json(USERS_FILE)
-    for user in users:
-        if user["username"].lower() == new_username.lower() and user["username"].lower() != old_username.lower():
-            return jsonify({"error": "Username is already taken"}), 400
+    existing = supabase.table("users") \
+        .select("username") \
+        .ilike("username", new_username) \
+        .execute()
 
-    # Update in users.json
-    for user in users:
-        if user["username"].lower() == old_username.lower():
-            user["username"] = new_username
-            break
+    if existing.data and existing.data[0]["username"].lower() != old_username.lower():
+        return jsonify({"error": "Username is already taken"}), 400
 
-    save_json(USERS_FILE, users)
+    # Update in users table
+    supabase.table("users") \
+        .update({"username": new_username}) \
+        .ilike("username", old_username) \
+        .execute()
 
-    # Sync historical data (messages, rooms)
+    # Sync historical data (messages, rooms, etc.)
     sync_user_data_update(old_username, new_username)
 
     # Update session
@@ -732,19 +727,25 @@ def update_password():
         return jsonify({"error": "New password must be at least 4 characters"}), 400
 
     # Verify current password
-    users = load_json(USERS_FILE)
-    user_data = next((u for u in users if u["username"].lower() == session["username"].lower()), None)
+    result = supabase.table("users") \
+        .select("password") \
+        .ilike("username", session["username"]) \
+        .execute()
 
-    if not user_data:
+    if not result.data:
         return jsonify({"error": "User not found"}), 404
+
+    user_data = result.data[0]
 
     if not bcrypt.checkpw(current_password.encode("utf-8"), user_data["password"].encode("utf-8")):
         return jsonify({"error": "Current password is incorrect"}), 401
 
     # Update password
     hashed = bcrypt.hashpw(new_password.encode("utf-8"), bcrypt.gensalt())
-    user_data["password"] = hashed.decode("utf-8")
-    save_json(USERS_FILE, users)
+    supabase.table("users") \
+        .update({"password": hashed.decode("utf-8")}) \
+        .ilike("username", session["username"]) \
+        .execute()
 
     return jsonify({"status": "ok"})
 
@@ -765,16 +766,13 @@ def update_avatar():
     if not avatar_type or not avatar_value:
         return jsonify({"error": "Avatar data is required"}), 400
 
-    users = load_json(USERS_FILE)
-    for user in users:
-        if user["username"].lower() == session["username"].lower():
-            user["avatar"] = {
-                "type": avatar_type,
-                "value": avatar_value
-            }
-            break
-
-    save_json(USERS_FILE, users)
+    supabase.table("users") \
+        .update({
+            "avatar_type": avatar_type,
+            "avatar_value": avatar_value
+        }) \
+        .ilike("username", session["username"]) \
+        .execute()
 
     return jsonify({"status": "ok"})
 
@@ -804,17 +802,14 @@ def upload_avatar():
     filepath = os.path.join(UPLOADS_DIR, filename)
     file.save(filepath)
 
-    # Save to user record
-    users = load_json(USERS_FILE)
-    for user in users:
-        if user["username"].lower() == session["username"].lower():
-            user["avatar"] = {
-                "type": "upload",
-                "value": filename
-            }
-            break
-
-    save_json(USERS_FILE, users)
+    # Save to user record in Supabase
+    supabase.table("users") \
+        .update({
+            "avatar_type": "upload",
+            "avatar_value": filename
+        }) \
+        .ilike("username", session["username"]) \
+        .execute()
 
     return jsonify({"status": "ok", "filename": filename})
 
@@ -840,18 +835,20 @@ def register_guest():
     username = session["username"]
 
     # Check if already registered
-    users = load_json(USERS_FILE)
-    for user in users:
-        if user["username"].lower() == username.lower():
-            return jsonify({"error": "This username is already registered"}), 400
+    existing = supabase.table("users") \
+        .select("username") \
+        .ilike("username", username) \
+        .execute()
+
+    if existing.data:
+        return jsonify({"error": "This username is already registered"}), 400
 
     # Hash and save
     hashed = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
-    users.append({
+    supabase.table("users").insert({
         "username": username,
         "password": hashed.decode("utf-8")
-    })
-    save_json(USERS_FILE, users)
+    }).execute()
 
     # Mark session as logged in
     session["logged_in"] = True
@@ -864,13 +861,13 @@ def all_online():
     """Return all online users across the site for invitations."""
     if "username" not in session:
         return jsonify({"error": "Not logged in"}), 401
-        
+
     usernames = get_all_online_users()
     # Filter out self
     usernames = [u for u in usernames if u != session["username"]]
-    
+
     avatar_map = get_user_avatars(usernames)
-    
+
     detailed_users = []
     for u in usernames:
         detailed_users.append({
@@ -885,39 +882,37 @@ def invite_user():
     """Send an invitation to another user."""
     if "username" not in session:
         return jsonify({"error": "Not logged in"}), 401
-        
+
     data = request.json
     target_user = data.get("target_user")
     room_name = data.get("room")
-    
+
     if not target_user or not room_name:
         return jsonify({"error": "Target user and room name required"}), 400
-        
-    # Security check: only creator or authorized can invite
-    rooms = load_json(ROOMS_FILE)
-    room_data = next((r for r in rooms if r["name"] == room_name), None)
-    if not room_data or room_data.get("creator") != session["username"]:
+
+    # Security check: only creator can invite
+    room_result = supabase.table("rooms") \
+        .select("creator") \
+        .eq("name", room_name) \
+        .execute()
+
+    if not room_result.data or room_result.data[0]["creator"] != session["username"]:
         return jsonify({"error": "Only the room creator can send invitations"}), 403
-        
-    # Save invitation
-    INVITATIONS_FILE = os.path.join(DATA_DIR, "invitations.json")
-    if os.path.exists(INVITATIONS_FILE):
-        invites = load_json(INVITATIONS_FILE)
-    else:
-        invites = {}
-        
-    if target_user not in invites:
-        invites[target_user] = []
-        
+
     # Check if already invited to this room
-    if not any(inv["room"] == room_name for inv in invites[target_user]):
-        invites[target_user].append({
+    existing_invite = supabase.table("invitations") \
+        .select("id") \
+        .eq("target_user", target_user) \
+        .eq("room", room_name) \
+        .execute()
+
+    if not existing_invite.data:
+        supabase.table("invitations").insert({
+            "target_user": target_user,
             "room": room_name,
-            "requester": session["username"],
-            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        })
-        save_json(INVITATIONS_FILE, invites)
-        
+            "requester": session["username"]
+        }).execute()
+
     return jsonify({"status": "ok"})
 
 
@@ -926,29 +921,31 @@ def get_invitations():
     """Check for pending invitations for the current user."""
     if "username" not in session:
         return jsonify([])
-        
-    INVITATIONS_FILE = os.path.join(DATA_DIR, "invitations.json")
-    if not os.path.exists(INVITATIONS_FILE):
-        return jsonify([])
-        
-    invites = load_json(INVITATIONS_FILE)
-    user_invites = invites.get(session["username"], [])
-    
-    # Filter out old invitations (e.g. older than 1 minute)
-    now = datetime.now()
+
+    # Get invitations newer than 60 seconds
+    cutoff = (datetime.now(timezone.utc) - timedelta(seconds=60)).isoformat()
+
+    result = supabase.table("invitations") \
+        .select("id, room, requester, created_at") \
+        .eq("target_user", session["username"]) \
+        .gte("created_at", cutoff) \
+        .execute()
+
     valid_invites = []
-    for inv in user_invites:
-        try:
-            inv_time = datetime.strptime(inv["timestamp"], "%Y-%m-%d %H:%M:%S")
-            if (now - inv_time) < timedelta(seconds=60):
-                valid_invites.append(inv)
-        except:
-            continue
-            
-    # Clear valid invitations to prevent re-popups
-    invites[session["username"]] = []
-    save_json(INVITATIONS_FILE, invites)
-    
+    invite_ids = []
+    for inv in result.data:
+        valid_invites.append({
+            "room": inv["room"],
+            "requester": inv["requester"],
+            "timestamp": inv["created_at"]
+        })
+        invite_ids.append(inv["id"])
+
+    # Delete retrieved invitations to prevent re-popups
+    if invite_ids:
+        for inv_id in invite_ids:
+            supabase.table("invitations").delete().eq("id", inv_id).execute()
+
     return jsonify(valid_invites)
 
 
@@ -957,38 +954,38 @@ def accept_invitation():
     """Accept an invitation to join a room."""
     if "username" not in session:
         return jsonify({"error": "Not logged in"}), 401
-        
+
     data = request.json
     room_name = data.get("room")
-    
+
     if not room_name:
         return jsonify({"error": "Room name required"}), 400
-        
-    # Add to authorized_users in rooms.json
-    rooms = load_json(ROOMS_FILE)
-    room_data = next((r for r in rooms if r["name"] == room_name), None)
-    
-    if not room_data:
+
+    # Verify room exists
+    room_result = supabase.table("rooms") \
+        .select("name") \
+        .eq("name", room_name) \
+        .execute()
+
+    if not room_result.data:
         return jsonify({"error": "Room not found"}), 404
-        
-    if "authorized_users" not in room_data:
-        room_data["authorized_users"] = [room_data.get("creator")]
-        
-    if session["username"] not in room_data["authorized_users"]:
-        room_data["authorized_users"].append(session["username"])
-        save_json(ROOMS_FILE, rooms)
-        
+
+    # Add to authorized users (upsert to avoid duplicates)
+    supabase.table("room_authorized_users").upsert({
+        "room_name": room_name,
+        "username": session["username"]
+    }, on_conflict="room_name,username").execute()
+
     # Also unlock in current session
     unlocked = session.get("unlocked_rooms", [])
     if room_name not in unlocked:
         unlocked.append(room_name)
         session["unlocked_rooms"] = unlocked
         session.modified = True
-        
+
     return jsonify({"status": "ok"})
 
 
 # ── Initialize and Run ───────────────────────────────────────────────────────
 if __name__ == "__main__":
-    init_data()
     app.run(debug=True, host="0.0.0.0", port=5000)
