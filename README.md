@@ -58,7 +58,7 @@
 
 ```bash
 git clone https://github.com/nouredotma/Candela.git
-cd Candela/CHATROOM-P
+cd Candela
 pip install -r requirements.txt
 ```
 
@@ -92,7 +92,7 @@ Open [http://localhost:5000](http://localhost:5000) — the app runs on port 500
 ## 📁 Project Structure
 
 ```
-CHATROOM-P/
+Candela/
 ├── app.py                  # Flask backend — all routes and Supabase queries
 ├── requirements.txt        # Python dependencies
 ├── setup_database.sql      # One-time SQL script for Supabase table creation
