@@ -19,7 +19,7 @@
 ---
 
 <p align="center">
-  <img src="static/img/login.png" alt="Candela App Preview" width="700" style="border-radius: 16px;">
+  <img src="static/img/login2.png" alt="Candela App Preview" width="700" style="border-radius: 16px;">
 </p>
 
 ---
