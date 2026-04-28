@@ -1,7 +1,7 @@
 /* ══════════════════════════════════════════════════════════════════════════
    CHATROOM-P — Stylesheet
    Gradient background (#447768 → light tint), #679c8f accent,
-   rounded-xs (4px), Open Sans font, flexbox layout
+   rounded-xs (4px), Poppins font, flexbox layout
    ══════════════════════════════════════════════════════════════════════════ */
 
 /* ── Reset & Base ──────────────────────────────────────────────────────── */
@@ -13,8 +13,8 @@
 
 html, body {
     height: 100%;
-    font-family: 'Open Sans', system-ui, -apple-system, sans-serif;
-    background: linear-gradient(to top, #447768, #e1dcd7);
+    font-family: 'Poppins', system-ui, -apple-system, sans-serif;
+    background: linear-gradient(to top, #447768, #d2cdc8);
     background-attachment: fixed;
     color: #e0e0e0;
     font-size: 14px;
@@ -92,7 +92,7 @@ input, button, select, textarea {
     position: absolute;
     top: 25px;
     right: 25px;
-    background: #e1dcd7;
+    background: #d2cdc8;
     padding: 12px 20px;
     border-radius: 50px;
     display: flex;
@@ -473,6 +473,84 @@ input, button, select, textarea {
     border-left: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+/* ── Sidebar Info Card (Right Sidebar Bottom) ──────────────────────────── */
+.sidebar-info-card {
+    margin: 8px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+.sidebar-info-card:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.info-card-icon {
+    width: 28px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.info-card-icon i {
+    font-size: 14px;
+    color: #ffffff;
+    line-height: 1;
+    display: block;
+    transform: translateY(1px);
+}
+
+.info-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.info-card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #ffffff;
+    letter-spacing: 0.3px;
+}
+
+.info-card-text {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.55);
+    line-height: 1.4;
+    margin: 0;
+}
+
+.info-card-text strong {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.info-card-footer {
+    padding-top: 5px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.info-card-footer span {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.45);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    word-break: break-word;
+}
+
 /* ── Sidebar Logo ──────────────────────────────────────────────────────── */
 .sidebar-logo {
     display: flex;
@@ -838,10 +916,10 @@ input, button, select, textarea {
 
 .online-count {
     font-size: 12px;
-    color: #679c8f;
+    color: red;
     padding: 3px 12px;
-    background-color: rgba(103, 156, 143, 0.1);
-    border: 1px solid rgba(103, 156, 143, 0.2);
+    background-color: rgba(255, 0, 0, 0.1);
+    border: 1px solid rgba(255, 0, 0, 0.2);
     border-radius: 50px;
 }
 
@@ -1183,12 +1261,12 @@ input, button, select, textarea {
     text-transform: uppercase;
     letter-spacing: 0.5px;
     width: calc(100% - 32px);
-    box-shadow: none;
+    box-shadow: none !important;
 }
 
 .btn-create-room:hover {
     background: rgba(255, 255, 255, 0.9);
-    box-shadow: none;
+    box-shadow: none !important;
 }
 
 /* ── Modal Overlay ─────────────────────────────────────────────────────── */
@@ -1284,10 +1362,12 @@ input, button, select, textarea {
     background-color: #447768 !important;
     color: #ffffff !important;
     border-radius: 50px;
+    box-shadow: none !important;
 }
 
 .modal-body .btn-chat-primary:hover {
     background-color: #386155 !important;
+    box-shadow: none !important;
 }
 
 .sidebar-rooms-group {
