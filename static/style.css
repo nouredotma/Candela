@@ -13,8 +13,8 @@
 
 html, body {
     height: 100%;
-    font-family: 'Poppins', system-ui, -apple-system, sans-serif;
-    background: linear-gradient(to top, #447768, #d2cdc8);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: #000000;
     background-attachment: fixed;
     color: #e0e0e0;
     font-size: 14px;
@@ -35,7 +35,7 @@ input, button, select, textarea {
     font-size: inherit;
     border: none;
     outline: none;
-    border-radius: 4px;
+    border-radius: 12px;
 }
 
 /* ── Scrollbar Styling ─────────────────────────────────────────────────── */
@@ -48,12 +48,12 @@ input, button, select, textarea {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: rgba(103, 156, 143, 0.3);
+    background: rgba(255, 255, 255, 0.15);
     border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: rgba(103, 156, 143, 0.6);
+    background: rgba(255, 255, 255, 0.25);
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -63,6 +63,7 @@ input, button, select, textarea {
 .join-page {
     min-height: 100vh;
     overflow-x: hidden;
+    background: #679c8f;
 }
 
 .join-layout {
@@ -92,7 +93,7 @@ input, button, select, textarea {
     position: absolute;
     top: 25px;
     right: 25px;
-    background: #d2cdc8;
+    background: #679c8f;
     padding: 12px 20px;
     border-radius: 50px;
     display: flex;
@@ -119,7 +120,7 @@ input, button, select, textarea {
 .floating-badge .status-dot {
     width: 7px;
     height: 7px;
-    background: #679c8f;
+    background: white;
     border-radius: 50%;
     position: relative;
 }
@@ -226,7 +227,7 @@ input, button, select, textarea {
     padding: 10px 20px;
     font-size: 13px;
     margin-bottom: 20px;
-    border-radius: 50px;
+    border-radius: 12px;
     text-align: center;
 }
 
@@ -234,7 +235,7 @@ input, button, select, textarea {
 .tab-bar {
     display: flex;
     background: rgba(255, 255, 255, 0.12);
-    border-radius: 50px;
+    border-radius: 12px;
     padding: 4px;
     margin-bottom: 24px;
     border: 1px solid rgba(255, 255, 255, 0.15);
@@ -249,7 +250,7 @@ input, button, select, textarea {
     left: 4px;
     width: calc((100% - 8px) / 3);
     background: #ffffff;
-    border-radius: 50px;
+    border-radius: 8px;
     transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 0;
 }
@@ -267,7 +268,7 @@ input, button, select, textarea {
     letter-spacing: 0.5px;
     cursor: pointer;
     border: none;
-    border-radius: 50px;
+    border-radius: 12px;
     transition: color 0.3s ease;
     text-align: center;
 }
@@ -354,7 +355,7 @@ input, button, select, textarea {
 }
 
 .modal-body .form-group label {
-    color: #447768;
+    color: #ffffff;
 }
 
 .form-group input,
@@ -364,7 +365,7 @@ input, button, select, textarea {
     border: 1px solid rgba(255, 255, 255, 0.2);
     color: #ffffff;
     font-size: 14px;
-    border-radius: 50px;
+    border-radius: 12px;
     transition: all 0.3s ease;
 }
 
@@ -400,7 +401,7 @@ input, button, select, textarea {
     letter-spacing: 1px;
     transition: all 0.3s ease;
     border: none;
-    border-radius: 50px;
+    border-radius: 12px;
     margin-top: 8px;
 }
 
@@ -418,7 +419,7 @@ input, button, select, textarea {
     text-transform: uppercase;
     letter-spacing: 1px;
     border: none;
-    border-radius: 50px;
+    border-radius: 12px;
     transition: all 0.3s ease;
     margin-top: 8px;
 }
@@ -455,27 +456,66 @@ input, button, select, textarea {
     display: flex;
     height: 100vh;
     width: 100%;
+    padding: 16px;
+    gap: 16px;
 }
 
 /* ── Sidebars (2.5/12 each = 20.83%) — Transparent ─────────────────────────── */
 .sidebar {
     width: 20.833333%;
-    /* 2.5/12 */
     background: transparent;
-    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    border: none;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    gap: 16px;
+    overflow: visible;
 }
 
 .sidebar-right {
-    border-right: none;
-    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    border: none;
+}
+
+.sidebar-top-container,
+.sidebar-bottom-container,
+.chat-main-container {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+.sidebar-top-container {
+    flex: 1;
+    min-height: 0;
+}
+
+.chat-main-container {
+    flex: 1;
+    min-height: 0;
+}
+
+.sidebar-bottom-container {
+    cursor: pointer;
+    overflow: visible !important;
+    position: relative;
+    z-index: 10;
+}
+
+.sidebar-top-container:hover,
+.sidebar-bottom-container:hover,
+.chat-main-container:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.2);
 }
 
 /* ── Sidebar Info Card (Right Sidebar Bottom) ──────────────────────────── */
 .sidebar-info-card {
-    margin: 8px;
+    margin: 0;
     padding: 10px;
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.12);
@@ -557,7 +597,6 @@ input, button, select, textarea {
     align-items: center;
     justify-content: center;
     padding: 14px 24px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .sidebar-logo .logo-link {
@@ -606,7 +645,7 @@ input, button, select, textarea {
     padding: 12px 12px;
     font-size: 14px;
     color: #ffffff;
-    border-radius: 50px;
+    border-radius: 12px;
     margin: 4px 12px;
     transition: background-color 0.15s, color 0.15s;
     font-weight: 500;
@@ -625,7 +664,6 @@ input, button, select, textarea {
 /* ── Create Room (Bottom of Sidebar) ───────────────────────────────────── */
 .sidebar-bottom {
     padding: 12px 16px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .create-room-form {
@@ -640,7 +678,7 @@ input, button, select, textarea {
     border: 1px solid rgba(255, 255, 255, 0.2);
     color: #ffffff;
     font-size: 13px;
-    border-radius: 4px;
+    border-radius: 12px;
 }
 
 .create-room-form input:focus {
@@ -650,14 +688,14 @@ input, button, select, textarea {
 .btn-accent {
     padding: 8px 12px;
     background-color: #ffffff;
-    color: #447768;
+    color: #111111;
     font-weight: 700;
     font-size: 12px;
     cursor: pointer;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     border: none;
-    border-radius: 4px;
+    border-radius: 12px;
     transition: background-color 0.2s;
 }
 
@@ -669,7 +707,7 @@ input, button, select, textarea {
 .sidebar-footer {
     display: flex;
     align-items: center;
-    padding: 0px 12px 12px 12px;
+    padding: 0;
 }
 
 .user-profile {
@@ -677,15 +715,14 @@ input, button, select, textarea {
     align-items: center;
     gap: 12px;
     width: 100%;
-    padding: 10px 14px 10px 10px;
-    border-radius: 50px;
-    cursor: pointer;
+    padding: 12px 16px;
+    border-radius: 0;
     transition: all 0.3s ease;
     position: relative;
 }
 
 .user-profile:hover {
-    background: rgba(255, 255, 255, 0.12);
+    background: transparent;
 }
 
 .profile-dropdown {
@@ -693,14 +730,14 @@ input, button, select, textarea {
     bottom: calc(100% + 12px);
     left: 0;
     width: 180px;
-    background: #ffffff;
-    border-radius: 4px;
-    box-shadow: none;
+    background: #111111;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     display: none;
     flex-direction: column;
     padding: 8px;
     z-index: 100;
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     animation: slideUp 0.3s ease;
 }
 
@@ -715,7 +752,7 @@ input, button, select, textarea {
 
 .dropdown-item {
     padding: 10px 16px;
-    color: #444;
+    color: #ffffff;
     font-size: 13px;
     font-weight: 600;
     border-radius: 8px;
@@ -802,13 +839,12 @@ input, button, select, textarea {
 
 /* ── Center Chat Area (7/12 = 58.33%) — White Background ─────────────────────── */
 .chat-center {
-    width: 58.333333%;
-    /* 7/12 */
+    flex: 1;
     display: flex;
     flex-direction: column;
+    gap: 16px;
     background-color: transparent;
     color: #ffffff;
-    border-radius: 4px;
     position: relative;
     overflow: hidden;
 }
@@ -870,7 +906,7 @@ input, button, select, textarea {
     text-transform: uppercase;
     letter-spacing: 1px;
     border: none;
-    border-radius: 50px;
+    border-radius: 12px;
     cursor: pointer;
     transition: all 0.2s;
 }
@@ -916,11 +952,11 @@ input, button, select, textarea {
 
 .online-count {
     font-size: 12px;
-    color: red;
+    color: #f7f3ec;
     padding: 3px 12px;
-    background-color: rgba(255, 0, 0, 0.1);
-    border: 1px solid rgba(255, 0, 0, 0.2);
-    border-radius: 50px;
+    background-color: rgba(255, 255, 255, 0.10);
+    border: 1px solid #f7f3ec;
+    border-radius: 12px;
 }
 
 /* ── Messages Feed ─────────────────────────────────────────────────────── */
@@ -1064,7 +1100,7 @@ input, button, select, textarea {
 
 /* ── Message Input Bar (Floating & Transparent) ────────────────────────── */
 .message-input-bar {
-    padding: 0 12px 16px;
+    padding: 0;
     background-color: transparent !important;
     border: none !important;
     position: relative;
@@ -1075,15 +1111,22 @@ input, button, select, textarea {
     display: flex;
     align-items: center;
     gap: 12px;
-    background-color: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 50px; /* Full rounded as requested */
-    padding: 6px 18px; /* Slightly more horizontal padding for rounded ends */
+    border-radius: 12px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    padding: 8px 18px;
     transition: all 0.3s ease;
 }
 
+.input-capsule:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
 .input-capsule:focus-within {
-    background-color: rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.15);
     border-color: rgba(255, 255, 255, 0.3);
 }
 
@@ -1193,9 +1236,16 @@ input, button, select, textarea {
 }
 
 /* ── Online Users List (Right Sidebar) ─────────────────────────────────── */
-.online-users-list {
+.sidebar-users-scroll-area {
     flex: 1;
+    position: relative;
     overflow-y: auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.online-users-list {
     padding: 4px 0;
     min-height: 0;
 }
@@ -1246,22 +1296,42 @@ input, button, select, textarea {
     color: rgba(255, 255, 255, 0.75);
 }
 
+.offline-user-item {
+    opacity: 0.45;
+    filter: grayscale(0.8);
+    transition: opacity 0.3s ease, filter 0.3s ease;
+}
+
+.offline-user-item:hover {
+    opacity: 0.7;
+    filter: grayscale(0.3);
+}
+
+.online-user-dot.offline {
+    background-color: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 /* ── Create Room Button ───────────────────────────────────────────────── */
 .btn-create-room {
     background: #ffffff;
-    color: #447768;
+    color: #111111;
     border: none;
     padding: 10px 20px;
-    border-radius: 50px;
+    border-radius: 12px;
     font-weight: 600;
     font-size: 13px;
-    margin: 8px 16px 0;
+    margin: 0;
     cursor: pointer;
     transition: all 0.3s ease;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    width: calc(100% - 32px);
+    width: 100%;
     box-shadow: none !important;
+}
+
+.sidebar-action-container {
+    padding: 8px 16px 0;
 }
 
 .btn-create-room:hover {
@@ -1285,13 +1355,13 @@ input, button, select, textarea {
 }
 
 .modal-content {
-    background: #ffffff;
+    background: #111111;
     padding: 24px;
-    border-radius: 4px;
+    border-radius: 12px;
     width: 400px;
     max-width: 90%;
-    box-shadow: none;
-    border: none;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     position: relative;
 }
 
@@ -1303,7 +1373,7 @@ input, button, select, textarea {
 
 .modal-header h3 {
     margin: 0;
-    color: #447768;
+    color: #ffffff;
     font-size: 18px;
     font-weight: 700;
 }
@@ -1314,7 +1384,7 @@ input, button, select, textarea {
     right: 12px;
     background: transparent;
     border: none;
-    color: #447768;
+    color: #ffffff;
     font-size: 20px;
     cursor: pointer;
     opacity: 0.6;
@@ -1330,7 +1400,8 @@ input, button, select, textarea {
 
 .btn-close:hover {
     opacity: 1;
-    background: rgba(68, 119, 104, 0.08);
+    background: #ffffff;
+    color: #111111;
     border-radius: 50%;
 }
 
@@ -1348,20 +1419,20 @@ input, button, select, textarea {
 }
 
 .modal-body .form-group input {
-    background: rgba(68, 119, 104, 0.08);
-    border: 1px solid rgba(68, 119, 104, 0.15);
-    color: #447768;
-    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    border-radius: 12px;
 }
 
 .modal-body .form-group input::placeholder {
-    color: rgba(68, 119, 104, 0.4);
+    color: rgba(255, 255, 255, 0.3);
 }
 
 .modal-body .btn-chat-primary {
     background-color: #447768 !important;
     color: #ffffff !important;
-    border-radius: 50px;
+    border-radius: 12px;
     box-shadow: none !important;
 }
 
@@ -1524,7 +1595,7 @@ input, button, select, textarea {
     background-color: rgba(68, 119, 104, 0.1) !important;
     color: #447768 !important;
     border: 1px solid rgba(68, 119, 104, 0.2) !important;
-    border-radius: 50px !important;
+    border-radius: 12px !important;
     font-weight: 600;
     height: 42px;
     display: flex;
@@ -1537,7 +1608,7 @@ input, button, select, textarea {
     background-color: #dc3545 !important;
     color: #ffffff !important;
     border: none;
-    border-radius: 50px !important;
+    border-radius: 12px !important;
     font-weight: 600;
     height: 42px;
     display: flex;
@@ -1567,8 +1638,8 @@ input, button, select, textarea {
 }
 
 .toast-message {
-    background: #ffffff;
-    color: #447768;
+    background: #111111;
+    color: #ffffff;
     padding: 12px 24px;
     border-radius: 50px;
     font-weight: 700;
@@ -1579,7 +1650,7 @@ input, button, select, textarea {
     gap: 10px;
     pointer-events: auto;
     animation: toastIn 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28), toastOut 0.4s 2.6s forwards;
-    border: 1px solid rgba(103, 156, 143, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .toast-message.success i { color: #4ade80; }
@@ -1678,7 +1749,7 @@ input, button, select, textarea {
 
 .profile-modal-body {
     padding: 0 !important;
-    background: #ffffff;
+    background: #111111;
 }
 
 .profile-layout-container {
@@ -1690,8 +1761,8 @@ input, button, select, textarea {
 /* ── Profile Left Column (Identity Card) ── */
 .profile-card-col {
     width: 38%;
-    background: rgba(68, 119, 104, 0.05);
-    border-right: 1px solid rgba(68, 119, 104, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
     padding: 40px 24px;
     display: flex;
     flex-direction: column;
@@ -1743,7 +1814,7 @@ input, button, select, textarea {
 .profile-username-text {
     font-size: 20px;
     font-weight: 700;
-    color: #333333;
+    color: #ffffff;
     max-width: 160px;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1777,11 +1848,11 @@ input, button, select, textarea {
 }
 
 .profile-username-edit-form input {
-    background: #ffffff;
-    border: 1px solid rgba(68, 119, 104, 0.3);
-    color: #333;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #ffffff;
     padding: 8px 12px;
-    border-radius: 4px;
+    border-radius: 12px;
     width: 100%;
     text-align: center;
     font-weight: 600;
@@ -1907,7 +1978,7 @@ input, button, select, textarea {
 .btn-upload-avatar-box {
     width: 100%;
     height: 120px;
-    border: 2px dashed rgba(68, 119, 104, 0.2);
+    border: 2px dashed rgba(255, 255, 255, 0.1);
     border-radius: 12px;
     display: flex;
     flex-direction: column;
@@ -1916,7 +1987,7 @@ input, button, select, textarea {
     gap: 12px;
     cursor: pointer;
     transition: all 0.2s;
-    color: #447768;
+    color: #ffffff;
 }
 
 .btn-upload-avatar-box i {
@@ -1955,9 +2026,9 @@ input, button, select, textarea {
 }
 
 .password-form-compact .form-group input {
-    background: rgba(68, 119, 104, 0.04);
-    border: 1px solid rgba(68, 119, 104, 0.1);
-    color: #333;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #ffffff;
     padding: 10px 14px;
 }
 
@@ -1978,11 +2049,11 @@ input, button, select, textarea {
 }
 
 .guest-register-form .form-group input {
-    background: rgba(68, 119, 104, 0.04);
-    border: 1px solid rgba(68, 119, 104, 0.1);
-    color: #333;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #ffffff;
     padding: 12px 16px;
-    border-radius: 8px;
+    border-radius: 12px;
 }
 
 .profile-badge {
@@ -2023,7 +2094,7 @@ input, button, select, textarea {
 .profile-section-title {
     font-size: 13px;
     font-weight: 700;
-    color: #447768;
+    color: #ffffff;
     margin-bottom: 12px;
 }
 
@@ -2037,13 +2108,13 @@ input, button, select, textarea {
 .btn-profile-option {
     flex: 1;
     padding: 8px 12px;
-    background: rgba(68, 119, 104, 0.06);
-    border: 1px solid rgba(68, 119, 104, 0.12);
-    color: #447768;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #ffffff;
     font-size: 12px;
     font-weight: 600;
     cursor: pointer;
-    border-radius: 4px;
+    border-radius: 8px;
     transition: all 0.2s ease;
     display: flex;
     align-items: center;
@@ -2078,13 +2149,13 @@ input, button, select, textarea {
     flex: 1;
     text-align: center;
     padding: 5px 10px;
-    background: rgba(68, 119, 104, 0.06);
-    border: 1px solid rgba(68, 119, 104, 0.1);
-    color: #447768;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #ffffff;
     font-size: 11px;
     font-weight: 600;
     cursor: pointer;
-    border-radius: 4px;
+    border-radius: 8px;
     white-space: nowrap;
     transition: all 0.2s;
     text-transform: capitalize;

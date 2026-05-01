@@ -281,29 +281,130 @@ function renderMessages(messages) {
 function renderOnlineUsers(users) {
     const list = document.getElementById("online-users-list");
 
-    if (users.length === 0) {
-        list.innerHTML = `
-            <li class="online-user-item">
-                <span class="online-user-name" style="color:#ff0000;">No one is online</span>
-            </li>
-        `;
-        return;
-    }
-
     let html = "";
-    for (let i = 0; i < users.length; i++) {
-        const user = users[i];
-        const initial = user.username.charAt(0).toUpperCase();
-        const avatarHtml = getAvatarHtml(user.avatar, user.username);
+    
+    // Add online users if any
+    if (users.length > 0) {
+        for (let i = 0; i < users.length; i++) {
+            const user = users[i];
+            const initial = user.username.charAt(0).toUpperCase();
+            const avatarHtml = getAvatarHtml(user.avatar, user.username);
 
-        html += `<li class="online-user-item">`;
-        html += `  <div class="online-avatar-container">`;
-        html += `    <div class="online-user-avatar">${avatarHtml}</div>`;
-        html += `    <div class="online-user-dot"></div>`;
-        html += `  </div>`;
-        html += `  <span class="online-user-name">${escapeHtml(user.username)}</span>`;
-        html += `</li>`;
+            html += `<li class="online-user-item">`;
+            html += `  <div class="online-avatar-container">`;
+            html += `    <div class="online-user-avatar">${avatarHtml}</div>`;
+            html += `    <div class="online-user-dot"></div>`;
+            html += `  </div>`;
+            html += `  <span class="online-user-name">${escapeHtml(user.username)}</span>`;
+            html += `</li>`;
+        }
     }
+
+    // Append 10 hardcoded offline users
+    html += `
+        <li class="online-user-item offline-user-item">
+            <div class="online-avatar-container">
+                <div class="online-user-avatar">
+                    <img src="https://api.dicebear.com/9.x/adventurers/svg?seed=Felix" alt="avatar">
+                </div>
+                <div class="online-user-dot offline"></div>
+            </div>
+            <span class="online-user-name">Felix</span>
+        </li>
+        <li class="online-user-item offline-user-item">
+            <div class="online-avatar-container">
+                <div class="online-user-avatar">
+                    <img src="https://api.dicebear.com/9.x/personas/svg?seed=Aria" alt="avatar">
+                </div>
+                <div class="online-user-dot offline"></div>
+            </div>
+            <span class="online-user-name">Aria</span>
+        </li>
+        <li class="online-user-item offline-user-item">
+            <div class="online-avatar-container">
+                <div class="online-user-avatar">
+                    <div class="avatar-placeholder" style="background-color: #5865F2">
+                        <img src="/static/img/avatar.png" class="placeholder-logo" alt="Candela">
+                    </div>
+                </div>
+                <div class="online-user-dot offline"></div>
+            </div>
+            <span class="online-user-name">Julian</span>
+        </li>
+        <li class="online-user-item offline-user-item">
+            <div class="online-avatar-container">
+                <div class="online-user-avatar">
+                    <div class="avatar-placeholder" style="background-color: #EB459E">
+                        <img src="/static/img/avatar.png" class="placeholder-logo" alt="Candela">
+                    </div>
+                </div>
+                <div class="online-user-dot offline"></div>
+            </div>
+            <span class="online-user-name">Elena</span>
+        </li>
+        <li class="online-user-item offline-user-item">
+            <div class="online-avatar-container">
+                <div class="online-user-avatar">
+                    <div class="avatar-placeholder" style="background-color: #FEE75C">
+                        <img src="/static/img/avatar.png" class="placeholder-logo" alt="Candela">
+                    </div>
+                </div>
+                <div class="online-user-dot offline"></div>
+            </div>
+            <span class="online-user-name">Marcus</span>
+        </li>
+        <li class="online-user-item offline-user-item">
+            <div class="online-avatar-container">
+                <div class="online-user-avatar">
+                    <img src="https://api.dicebear.com/9.x/bottts/svg?seed=Echo" alt="avatar">
+                </div>
+                <div class="online-user-dot offline"></div>
+            </div>
+            <span class="online-user-name">Echo</span>
+        </li>
+        <li class="online-user-item offline-user-item">
+            <div class="online-avatar-container">
+                <div class="online-user-avatar">
+                    <div class="avatar-placeholder" style="background-color: #57F287">
+                        <img src="/static/img/avatar.png" class="placeholder-logo" alt="Candela">
+                    </div>
+                </div>
+                <div class="online-user-dot offline"></div>
+            </div>
+            <span class="online-user-name">Nova</span>
+        </li>
+        <li class="online-user-item offline-user-item">
+            <div class="online-avatar-container">
+                <div class="online-user-avatar">
+                    <div class="avatar-placeholder" style="background-color: #ED4245">
+                        <img src="/static/img/avatar.png" class="placeholder-logo" alt="Candela">
+                    </div>
+                </div>
+                <div class="online-user-dot offline"></div>
+            </div>
+            <span class="online-user-name">Silas</span>
+        </li>
+        <li class="online-user-item offline-user-item">
+            <div class="online-avatar-container">
+                <div class="online-user-avatar">
+                    <img src="https://api.dicebear.com/9.x/avataaars/svg?seed=Luna" alt="avatar">
+                </div>
+                <div class="online-user-dot offline"></div>
+            </div>
+            <span class="online-user-name">Luna</span>
+        </li>
+        <li class="online-user-item offline-user-item">
+            <div class="online-avatar-container">
+                <div class="online-user-avatar">
+                    <div class="avatar-placeholder" style="background-color: #99AAB5">
+                        <img src="/static/img/avatar.png" class="placeholder-logo" alt="Candela">
+                    </div>
+                </div>
+                <div class="online-user-dot offline"></div>
+            </div>
+            <span class="online-user-name">Jasper</span>
+        </li>
+    `;
 
     list.innerHTML = html;
 }

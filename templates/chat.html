@@ -12,7 +12,7 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
@@ -24,47 +24,53 @@
 
         <!-- ── Left Sidebar: Room List (3/12) ──────────────────────────────── -->
         <aside class="sidebar sidebar-left">
-            <div class="sidebar-logo">
-                <a href="/chat/general" class="logo-link">
-                    <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Candela" class="sidebar-logo-img">
-                    <span class="logo-text">Candela</span>
-                </a>
+            <div class="sidebar-top-container">
+                <div class="sidebar-logo">
+                    <a href="/chat/general" class="logo-link">
+                        <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Candela" class="sidebar-logo-img">
+                        <span class="logo-text">Candela</span>
+                    </a>
+                </div>
+
+                <div class="sidebar-action-container">
+                    <button id="open-create-modal" class="btn-create-room">+ Create Room</button>
+                </div>
+                
+                <div class="sidebar-rooms-group">
+                    <div class="sidebar-section-title">Rooms</div>
+                    <ul id="room-list" class="room-list">
+                        {% for r in rooms %}
+                        <li class="room-item {% if r.name == room %}active{% endif %}">
+                            <a href="/chat/{{ r.name }}" class="d-flex justify-content-between align-items-center">
+                                <span># {{ r.name }}</span>
+                                {% if r.is_secure is defined and r.is_secure %}
+                                <i class="bi bi-lock-fill lock-icon"></i>
+                                {% endif %}
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
             </div>
 
-            <button id="open-create-modal" class="btn-create-room">+ Create Room</button>
-            
-            <div class="sidebar-rooms-group">
-                <div class="sidebar-section-title">Rooms</div>
-                <ul id="room-list" class="room-list">
-                    {% for r in rooms %}
-                    <li class="room-item {% if r.name == room %}active{% endif %}">
-                        <a href="/chat/{{ r.name }}" class="d-flex justify-content-between align-items-center">
-                            <span># {{ r.name }}</span>
-                            {% if r.is_secure is defined and r.is_secure %}
-                            <i class="bi bi-lock-fill lock-icon"></i>
-                            {% endif %}
-                        </a>
-                    </li>
-                    {% endfor %}
-                </ul>
-            </div>
-
-            <div class="sidebar-footer">
-                <div class="user-profile" id="profile-trigger">
-                    <div class="user-avatar" id="sidebar-avatar-target">
-                        <div class="avatar-placeholder">
-                            <img src="{{ url_for('static', filename='img/avatar.png') }}" class="placeholder-logo" alt="Candela">
+            <div class="sidebar-bottom-container" id="profile-trigger">
+                <div class="sidebar-footer">
+                    <div class="user-profile">
+                        <div class="user-avatar" id="sidebar-avatar-target">
+                            <div class="avatar-placeholder">
+                                <img src="{{ url_for('static', filename='img/avatar.png') }}" class="placeholder-logo" alt="Candela">
+                            </div>
                         </div>
-                    </div>
-                    <div class="user-info-text">
-                        <span class="user-badge">{{ username }}</span>
-                        <span class="user-status-subtitle" id="user-status-subtitle">
-                            {% if is_registered %}Registered Account{% else %}Guest Account{% endif %}
-                        </span>
-                    </div>
-                    <div id="profile-dropdown" class="profile-dropdown">
-                        <a href="#" class="dropdown-item"><i class="bi bi-person me-2"></i> Profile</a>
-                        <a href="/logout" class="dropdown-item logout"><i class="bi bi-box-arrow-right me-2"></i> Logout</a>
+                        <div class="user-info-text">
+                            <span class="user-badge">{{ username }}</span>
+                            <span class="user-status-subtitle" id="user-status-subtitle">
+                                {% if is_registered %}Registered Account{% else %}Guest Account{% endif %}
+                            </span>
+                        </div>
+                        <div id="profile-dropdown" class="profile-dropdown">
+                            <a href="#" class="dropdown-item"><i class="bi bi-person me-2"></i> Profile</a>
+                            <a href="/logout" class="dropdown-item logout"><i class="bi bi-box-arrow-right me-2"></i> Logout</a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -72,111 +78,115 @@
 
         <!-- ── Center: Chat Area (6/12) ────────────────────────────────────── -->
         <main class="chat-center">
-            <!-- Header -->
-            <div class="chat-header">
-                <div class="chat-header-info">
-                    <h2># {{ room }}</h2>
+            <div class="chat-main-container">
+                <!-- Header -->
+                <div class="chat-header">
+                    <div class="chat-header-info">
+                        <h2># {{ room }}</h2>
+                    </div>
+                    {% if room_creator == username and room != "general" %}
+                    <div class="chat-header-actions">
+                        <button id="open-invite-modal" class="btn-header-action" title="Invite Friends">
+                            <i class="bi bi-person-plus"></i>
+                        </button>
+                        <button id="open-delete-modal" class="btn-header-action btn-delete-room" title="Delete Room">
+                            <i class="bi bi-trash3"></i>
+                        </button>
+                    </div>
+                    {% endif %}
                 </div>
-                {% if room_creator == username and room != "general" %}
-                <div class="chat-header-actions">
-                    <button id="open-invite-modal" class="btn-header-action" title="Invite Friends">
-                        <i class="bi bi-person-plus"></i>
-                    </button>
-                    <button id="open-delete-modal" class="btn-header-action btn-delete-room" title="Delete Room">
-                        <i class="bi bi-trash3"></i>
-                    </button>
+
+                <div class="chat-main-area-container position-relative flex-grow-1">
+                    <!-- Secure Room Overlay -->
+                    {% if is_secure and not is_unlocked %}
+                    <div id="secure-room-overlay" class="secure-room-overlay">
+                        <div class="secure-content">
+                            <i class="bi bi-lock-fill secure-lock-icon"></i>
+                            <h3 class="mb-1" style="font-weight: 700; font-size: 18px;">Secure Room</h3>
+                            <!-- Error Banner -->
+                            <div id="unlock-error" class="error-banner mb-3" style="display:none; font-size: 12px;"></div>
+
+                            <div class="form-group mb-2 mx-auto" style="max-width: 200px;">
+                                <input type="password" id="room-password-input" placeholder="Password" autocomplete="off" class="text-center w-100 secure-input-xs">
+                            </div>
+                            <button id="unlock-btn" class="btn-chat-primary-xs mt-0 w-100 mx-auto" style="max-width: 200px;">Unlock Room</button>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div id="chat-content-wrapper" class="chat-content-wrapper h-100 {% if is_secure and not is_unlocked %}secure-blurred{% endif %}">
+                        <!-- Messages Feed -->
+                        <div id="messages-feed" class="messages-feed content-fadein">
+                            <!-- Messages will be injected here by JS -->
+                        </div>
+
+                        <!-- Skeleton: Messages -->
+                        <div id="skeleton-messages" class="skeleton-container" style="position:absolute;top:0;left:0;right:0;bottom:60px;overflow:hidden;padding:16px 12px;">
+                            <div class="skeleton-message"><div class="skeleton-bone skeleton-avatar"></div><div class="skeleton-msg-content"><div class="skeleton-msg-header"><div class="skeleton-bone skeleton-username"></div><div class="skeleton-bone skeleton-timestamp"></div></div><div class="skeleton-bone skeleton-text-line" style="width:85%"></div><div class="skeleton-bone skeleton-text-line" style="width:60%"></div></div></div>
+                            <div class="skeleton-message"><div class="skeleton-bone skeleton-avatar"></div><div class="skeleton-msg-content"><div class="skeleton-msg-header"><div class="skeleton-bone skeleton-username" style="width:70px"></div><div class="skeleton-bone skeleton-timestamp"></div></div><div class="skeleton-bone skeleton-text-line" style="width:75%"></div></div></div>
+                            <div class="skeleton-message"><div class="skeleton-bone skeleton-avatar"></div><div class="skeleton-msg-content"><div class="skeleton-msg-header"><div class="skeleton-bone skeleton-username" style="width:110px"></div><div class="skeleton-bone skeleton-timestamp"></div></div><div class="skeleton-bone skeleton-text-line" style="width:90%"></div><div class="skeleton-bone skeleton-text-line" style="width:45%"></div></div></div>
+                            <div class="skeleton-message"><div class="skeleton-bone skeleton-avatar"></div><div class="skeleton-msg-content"><div class="skeleton-msg-header"><div class="skeleton-bone skeleton-username" style="width:80px"></div><div class="skeleton-bone skeleton-timestamp"></div></div><div class="skeleton-bone skeleton-text-line" style="width:65%"></div></div></div>
+                            <div class="skeleton-message"><div class="skeleton-bone skeleton-avatar"></div><div class="skeleton-msg-content"><div class="skeleton-msg-header"><div class="skeleton-bone skeleton-username"></div><div class="skeleton-bone skeleton-timestamp"></div></div><div class="skeleton-bone skeleton-text-line" style="width:80%"></div><div class="skeleton-bone skeleton-text-line" style="width:50%"></div></div></div>
+                        </div>
+
+                    </div> <!-- /chat-content-wrapper -->
                 </div>
-                {% endif %}
             </div>
 
-            <div class="chat-main-area-container position-relative flex-grow-1">
-                <!-- Secure Room Overlay -->
-                {% if is_secure and not is_unlocked %}
-                <div id="secure-room-overlay" class="secure-room-overlay">
-                    <div class="secure-content">
-                        <i class="bi bi-lock-fill secure-lock-icon"></i>
-                        <h3 class="mb-1" style="font-weight: 700; font-size: 18px;">Secure Room</h3>
-                        <!-- Error Banner -->
-                        <div id="unlock-error" class="error-banner mb-3" style="display:none; font-size: 12px;"></div>
-
-                        <div class="form-group mb-2 mx-auto" style="max-width: 200px;">
-                            <input type="password" id="room-password-input" placeholder="Password" autocomplete="off" class="text-center w-100 secure-input-xs">
-                        </div>
-                        <button id="unlock-btn" class="btn-chat-primary-xs mt-0 w-100 mx-auto" style="max-width: 200px;">Unlock Room</button>
+            <div class="message-input-bar">
+                <div id="image-preview" class="image-preview" style="display:none;">
+                    <img id="preview-img" src="" alt="preview" style="display:none;">
+                    <div id="pdf-preview-info" class="pdf-preview-info" style="display:none;">
+                        <i class="bi bi-file-earmark-pdf-fill"></i>
+                        <span class="pdf-preview-name">document.pdf</span>
+                    </div>
+                    <button id="remove-image" class="btn-remove-image">✕</button>
+                </div>
+                
+                <!-- Emoji Picker -->
+                <div id="media-picker-popup" class="media-picker-popup" style="display:none;">
+                    <div id="picker-emoji" class="picker-content active">
+                        <div id="emoji-grid" class="emoji-grid"></div>
                     </div>
                 </div>
-                {% endif %}
 
-                <div id="chat-content-wrapper" class="chat-content-wrapper h-100 {% if is_secure and not is_unlocked %}secure-blurred{% endif %}">
-                    <!-- Messages Feed -->
-                    <div id="messages-feed" class="messages-feed content-fadein">
-                        <!-- Messages will be injected here by JS -->
+                <div class="input-capsule">
+                    <label for="file-upload" class="btn-input-action" title="Attach file">
+                        <i class="bi bi-plus-lg"></i>
+                    </label>
+                    <input type="file" id="file-upload" accept="image/*,.pdf" style="display:none;">
+                    
+                    <input type="text" id="message-input" name="message" placeholder="Type a message..." autocomplete="one-time-code">
+                    
+                    <div class="input-right-actions">
+                        <button id="btn-emoji-picker" class="btn-input-action" title="Emoji"><i class="bi bi-emoji-smile"></i></button>
                     </div>
-
-                    <!-- Skeleton: Messages -->
-                    <div id="skeleton-messages" class="skeleton-container" style="position:absolute;top:0;left:0;right:0;bottom:60px;overflow:hidden;padding:16px 12px;">
-                        <div class="skeleton-message"><div class="skeleton-bone skeleton-avatar"></div><div class="skeleton-msg-content"><div class="skeleton-msg-header"><div class="skeleton-bone skeleton-username"></div><div class="skeleton-bone skeleton-timestamp"></div></div><div class="skeleton-bone skeleton-text-line" style="width:85%"></div><div class="skeleton-bone skeleton-text-line" style="width:60%"></div></div></div>
-                        <div class="skeleton-message"><div class="skeleton-bone skeleton-avatar"></div><div class="skeleton-msg-content"><div class="skeleton-msg-header"><div class="skeleton-bone skeleton-username" style="width:70px"></div><div class="skeleton-bone skeleton-timestamp"></div></div><div class="skeleton-bone skeleton-text-line" style="width:75%"></div></div></div>
-                        <div class="skeleton-message"><div class="skeleton-bone skeleton-avatar"></div><div class="skeleton-msg-content"><div class="skeleton-msg-header"><div class="skeleton-bone skeleton-username" style="width:110px"></div><div class="skeleton-bone skeleton-timestamp"></div></div><div class="skeleton-bone skeleton-text-line" style="width:90%"></div><div class="skeleton-bone skeleton-text-line" style="width:45%"></div></div></div>
-                        <div class="skeleton-message"><div class="skeleton-bone skeleton-avatar"></div><div class="skeleton-msg-content"><div class="skeleton-msg-header"><div class="skeleton-bone skeleton-username" style="width:80px"></div><div class="skeleton-bone skeleton-timestamp"></div></div><div class="skeleton-bone skeleton-text-line" style="width:65%"></div></div></div>
-                        <div class="skeleton-message"><div class="skeleton-bone skeleton-avatar"></div><div class="skeleton-msg-content"><div class="skeleton-msg-header"><div class="skeleton-bone skeleton-username"></div><div class="skeleton-bone skeleton-timestamp"></div></div><div class="skeleton-bone skeleton-text-line" style="width:80%"></div><div class="skeleton-bone skeleton-text-line" style="width:50%"></div></div></div>
-                    </div>
-
-                    <!-- Message Input Bar (Floating Capsule) -->
-                    <div class="message-input-bar">
-                        <div id="image-preview" class="image-preview" style="display:none;">
-                            <img id="preview-img" src="" alt="preview" style="display:none;">
-                            <div id="pdf-preview-info" class="pdf-preview-info" style="display:none;">
-                                <i class="bi bi-file-earmark-pdf-fill"></i>
-                                <span class="pdf-preview-name">document.pdf</span>
-                            </div>
-                            <button id="remove-image" class="btn-remove-image">✕</button>
-                        </div>
-                        
-                        <!-- Emoji Picker -->
-                        <div id="media-picker-popup" class="media-picker-popup" style="display:none;">
-                            <div id="picker-emoji" class="picker-content active">
-                                <div id="emoji-grid" class="emoji-grid"></div>
-                            </div>
-                        </div>
-
-                        <div class="input-capsule">
-                            <label for="file-upload" class="btn-input-action" title="Attach file">
-                                <i class="bi bi-plus-lg"></i>
-                            </label>
-                            <input type="file" id="file-upload" accept="image/*,.pdf" style="display:none;">
-                            
-                            <input type="text" id="message-input" name="message" placeholder="Type a message..." autocomplete="one-time-code">
-                            
-                            <div class="input-right-actions">
-                                <button id="btn-emoji-picker" class="btn-input-action" title="Emoji"><i class="bi bi-emoji-smile"></i></button>
-                            </div>
-                        </div>
-                    </div>
-                </div> <!-- /chat-content-wrapper -->
+                </div>
             </div>
         </main>
 
         <!-- ── Right Sidebar: Online Users (3/12) ─────────────────────────── -->
         <aside class="sidebar sidebar-right">
-            <div class="chat-header">
-                <div class="chat-header-info">
-                    <h2>Online Users</h2>
+            <div class="sidebar-top-container">
+                <div class="chat-header">
+                    <div class="chat-header-info">
+                        <h2>Online Users</h2>
+                    </div>
+                    <span id="online-count" class="online-count">0 online</span>
                 </div>
-                <span id="online-count" class="online-count">0 online</span>
-            </div>
-            <div style="flex:1;position:relative;overflow:hidden;min-height:0;">
-                <!-- Skeleton: Online Users -->
-                <div id="skeleton-online-users" class="skeleton-container" style="position:absolute;top:0;left:0;right:0;padding:4px 0;z-index:2;">
-                    <div class="skeleton-user-item"><div class="skeleton-bone skeleton-user-avatar"></div><div class="skeleton-bone skeleton-user-name" style="width:85px"></div></div>
-                    <div class="skeleton-user-item"><div class="skeleton-bone skeleton-user-avatar"></div><div class="skeleton-bone skeleton-user-name" style="width:65px"></div></div>
-                    <div class="skeleton-user-item"><div class="skeleton-bone skeleton-user-avatar"></div><div class="skeleton-bone skeleton-user-name" style="width:100px"></div></div>
-                    <div class="skeleton-user-item"><div class="skeleton-bone skeleton-user-avatar"></div><div class="skeleton-bone skeleton-user-name" style="width:75px"></div></div>
-                </div>
+                <div class="sidebar-users-scroll-area">
+                    <!-- Skeleton: Online Users -->
+                    <div id="skeleton-online-users" class="skeleton-container" style="position:absolute;top:0;left:0;right:0;padding:4px 0;z-index:2;">
+                        <div class="skeleton-user-item"><div class="skeleton-bone skeleton-user-avatar"></div><div class="skeleton-bone skeleton-user-name" style="width:85px"></div></div>
+                        <div class="skeleton-user-item"><div class="skeleton-bone skeleton-user-avatar"></div><div class="skeleton-bone skeleton-user-name" style="width:65px"></div></div>
+                        <div class="skeleton-user-item"><div class="skeleton-bone skeleton-user-avatar"></div><div class="skeleton-bone skeleton-user-name" style="width:100px"></div></div>
+                        <div class="skeleton-user-item"><div class="skeleton-bone skeleton-user-avatar"></div><div class="skeleton-bone skeleton-user-name" style="width:75px"></div></div>
+                    </div>
 
-                <ul id="online-users-list" class="online-users-list content-fadein">
-                    <!-- Online users injected here by JS -->
-                </ul>
+                    <ul id="online-users-list" class="online-users-list content-fadein">
+                        <!-- Online users injected here by JS -->
+                    </ul>
+                </div>
             </div>
 
             <!-- Bottom Info Card -->
